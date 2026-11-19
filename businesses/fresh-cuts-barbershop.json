@@ -1,0 +1,30 @@
+{
+  "id": "fresh-cuts-barbershop",
+  "name": "Fresh Cuts Barbershop",
+  "type": "Barbershop",
+  "tagline": "Sharp cuts, clean fades, zero wait when you book ahead.",
+  "brandColor": "#111827",
+  "greeting": "Yo! 👋 Welcome to Fresh Cuts. Want to book a cut or got a question?",
+  "tone": "friendly, casual, confident — like a good barber",
+  "phone": "(555) 010-2244",
+  "email": "hello@example.com",
+  "address": "123 Main Street, Springfield",
+  "hours": "Mon–Fri 9am–8pm, Sat 8am–6pm, Sun closed",
+  "bookingLink": "https://example.com/book/fresh-cuts",
+  "reviewLink": "https://example.com/review/fresh-cuts",
+  "services": [
+    { "name": "Classic haircut", "price": "$30", "duration": "30 min" },
+    { "name": "Skin fade", "price": "$35", "duration": "40 min" },
+    { "name": "Haircut + beard", "price": "$45", "duration": "50 min" },
+    { "name": "Beard trim & line-up", "price": "$20", "duration": "20 min" },
+    { "name": "Kids cut (under 12)", "price": "$22", "duration": "25 min" }
+  ],
+  "faqs": [
+    { "q": "Do you take walk-ins?", "a": "Yes, when a chair is free — but booking ahead means no wait. Weekends fill up fast." },
+    { "q": "Do you accept card payments?", "a": "Yes — cash, all major cards, Apple Pay and Google Pay." },
+    { "q": "Is there parking nearby?", "a": "Free street parking on Main Street and a public lot behind the building." }
+  ],
+  "offers": ["First visit 15% off — mention the website when you book"],
+  "policies": ["Please cancel at least 4 hours ahead", "Late by more than 10 minutes may need to reschedule"],
+  "goal": "Get visitors to book an appointment"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "bright-smile-dental",
+  "name": "Bright Smile Dental",
+  "type": "Dental clinic",
+  "tagline": "Gentle, modern dentistry for the whole family.",
+  "brandColor": "#0e7490",
+  "greeting": "Hello! 😊 Welcome to Bright Smile Dental. Can I help you book a visit or answer a question?",
+  "tone": "warm, reassuring and professional",
+  "phone": "(555) 010-7788",
+  "email": "frontdesk@example.com",
+  "address": "45 Oak Avenue, Suite 200, Springfield",
+  "hours": "Mon–Thu 8am–6pm, Fri 8am–2pm, Sat by appointment",
+  "bookingLink": "https://example.com/book/bright-smile",
+  "reviewLink": "https://example.com/review/bright-smile",
+  "services": [
+    { "name": "New patient exam, X-rays & cleaning", "price": "$99 special", "duration": "60 min" },
+    { "name": "Teeth whitening", "price": "from $249", "duration": "75 min" },
+    { "name": "Emergency visit", "price": "from $79", "duration": "30 min" },
+    { "name": "Invisalign consultation", "price": "Free", "duration": "30 min" }
+  ],
+  "faqs": [
+    { "q": "Do you accept insurance?", "a": "We accept most major PPO dental plans. Share your insurance name and we'll confirm coverage before your visit." },
+    { "q": "Do you see emergencies the same day?", "a": "Yes — call us as early as possible and we'll do our best to see you the same day." },
+    { "q": "I'm nervous about the dentist. Can you help?", "a": "Absolutely. Our team specializes in anxious patients — we go at your pace and can discuss comfort options at your visit." }
+  ],
+  "offers": ["New patients: exam, X-rays and cleaning for $99"],
+  "policies": ["24-hour cancellation notice, please", "Bring your insurance card and photo ID to your first visit"],
+  "goal": "Book new patient appointments and collect contact details from people who are not ready to book yet"
+}
