@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Dashboard</title>
+  <style>
+    :root { --bg: #f5f6f8; --card: #fff; --text: #111827; --muted: #6b7280; --line: #e5e7eb; --brand: #2563eb; --ok: #16a34a; --warn: #d97706; --bad: #dc2626; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    header { background: #111827; color: #fff; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    header h1 { font-size: 16px; margin: 0; }
+    header select { padding: 6px 10px; border-radius: 8px; border: 0; font-size: 14px; max-width: 100%; }
+    .pill { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: #374151; }
+    .pill.on { background: #166534; }
+    nav { display: flex; gap: 4px; padding: 8px 16px 0; overflow-x: auto; border-bottom: 1px solid var(--line); background: #fff; }
+    nav button { border: 0; background: none; padding: 10px 14px; cursor: pointer; font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+    nav button.active { color: var(--text); border-color: var(--brand); font-weight: 600; }
+    main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .card h2 { margin: 0 0 12px; font-size: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .stat b { display: block; font-size: 26px; }
+    .stat span { color: var(--muted); font-size: 13px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+    .empty { color: var(--muted); padding: 20px 0; text-align: center; }
+    label { display: block; font-weight: 600; margin: 12px 0 4px; }
+    label small { font-weight: 400; color: var(--muted); }
+    input, textarea, select.f { width: 100%; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 8px; font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 16px; }
+    .btn { background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 9px 16px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn:disabled { opacity: .5; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+    .convo { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+    .convo summary { padding: 10px 12px; cursor: pointer; display: flex; gap: 10px; flex-wrap: wrap; }
+    .convo summary span { color: var(--muted); }
+    .convo .lines { padding: 0 12px 12px; display: grid; gap: 6px; }
+    .line { padding: 7px 10px; border-radius: 8px; white-space: pre-wrap; max-width: 85%; }
+    .line.user { background: #eff6ff; justify-self: end; }
+    .line.assistant { background: #f3f4f6; }
+    .out { background: #f9fafb; border: 1px solid var(--line); border-radius: 8px; padding: 12px; white-space: pre-wrap; margin-top: 8px; }
+    code, pre { background: #111827; color: #e5e7eb; border-radius: 8px; padding: 12px; display: block; overflow-x: auto; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+    .msg { margin-top: 10px; font-weight: 600; }
+    .msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
+    #login { max-width: 360px; margin: 80px auto; }
+    .muted { color: var(--muted); }
+    .banner-note { border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-weight: 500; }
+    .banner-note.test { background: #fef3c7; color: #78350f; }
+    .banner-note.live { background: #dcfce7; color: #14532d; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #f3f4f6; }
+    .chip.review { background: #e0e7ff; } .chip.approved { background: #dbeafe; } .chip.sent { background: #dcfce7; }
+    .chip.skipped { background: #f3f4f6; color: var(--muted); } .chip.failed { background: #fee2e2; } .chip.generating, .chip.sending { background: #fef3c7; }
+    .camp { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .camp:last-child { border-bottom: 0; }
+    .email { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .email.sent, .email.skipped { opacity: .7; }
+    .email .to { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .email textarea { min-height: 150px; }
+    .email .err { color: var(--bad); font-size: 13px; margin-top: 6px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="login" class="card">
+    <h2>Agent dashboard</h2>
+    <p style="color:var(--muted)">Enter your dashboard password (default is <b>changeme</b>).</p>
+    <form id="loginForm">
+      <input id="pw" type="password" placeholder="Password" autocomplete="current-password" />
+      <div class="row"><button class="btn">Sign in</button></div>
+      <div id="loginErr" class="msg err"></div>
+    </form>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <h1>🤖 Marketing Agent</h1>
+      <select id="bizSelect" aria-label="Business"></select>
+      <span id="aiPill" class="pill">AI</span>
+    </header>
+    <nav id="tabs">
+      <button data-tab="leads" class="active">Leads</button>
+      <button data-tab="chats">Conversations</button>
+      <button data-tab="campaigns">Email campaigns</button>
+      <button data-tab="contacts">Contacts</button>
+      <button data-tab="grow">Quick message</button>
+      <button data-tab="setup">Business setup</button>
+      <button data-tab="install">Install</button>
+    </nav>
+    <main>
+      <!-- LEADS -->
+      <section data-panel="leads">
+        <div class="stats">
+          <div class="stat"><b id="sLeads">0</b><span>Leads captured</span></div>
+          <div class="stat"><b id="sNew">0</b><span>New, not contacted</span></div>
+          <div class="stat"><b id="sBooked">0</b><span>Booked</span></div>
+          <div class="stat"><b id="sChats">0</b><span>Conversations</span></div>
+        </div>
+        <div class="card">
+          <h2>Leads</h2>
+          <div class="table-wrap"><table>
+            <thead><tr><th>When</th><th>Name</th><th>Phone</th><th>Email</th><th>Interested in</th><th>Status</th></tr></thead>
+            <tbody id="leadRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- CONVERSATIONS -->
+      <section data-panel="chats" class="hidden">
+        <div class="card"><h2>Website conversations</h2><div id="convos"></div></div>
+      </section>
+
+      <!-- CAMPAIGNS -->
+      <section data-panel="campaigns" class="hidden">
+        <div id="mailBanner" class="banner-note"></div>
+        <div id="campaignList">
+          <div class="card">
+            <h2>New email campaign</h2>
+            <p class="muted" style="margin-top:0">The AI writes a personal email for each customer using only friendly details (first name, usual service, roughly how long it's been). You review every email before anything is sent.</p>
+            <div class="grid2">
+              <div><label for="cGoal">Goal</label><select id="cGoal" class="f"></select></div>
+              <div><label for="cName">Campaign name <small>(optional)</small></label><input id="cName" placeholder="e.g. December win-back" /></div>
+              <div>
+                <label for="cInactive">Who gets it?</label>
+                <select id="cInactive" class="f">
+                  <option value="0">Everyone who can be emailed</option>
+                  <option value="30">Haven't visited in 30+ days</option>
+                  <option value="60">Haven't visited in 60+ days</option>
+                  <option value="90">Haven't visited in 90+ days</option>
+                  <option value="180">Haven't visited in 6+ months</option>
+                </select>
+              </div>
+              <div><label for="cTag">Only this tag <small>(optional)</small></label><input id="cTag" placeholder="e.g. regular" /></div>
+            </div>
+            <label for="cNotes">Notes for the AI <small>(the offer, the news, the partnership idea…)</small></label>
+            <input id="cNotes" placeholder="e.g. 20% off any service until Dec 24" />
+            <div class="row"><button class="btn" id="cCreate">Write the emails</button><span id="cAudience" class="muted"></span></div>
+            <div id="cMsg" class="msg err"></div>
+          </div>
+          <div class="card"><h2>Campaigns</h2><div id="campaigns"></div></div>
+        </div>
+        <div id="campaignDetail" class="hidden">
+          <div class="row" style="margin-top:0;margin-bottom:12px"><button class="btn secondary" id="cBack">← All campaigns</button></div>
+          <div class="card">
+            <h2 id="dTitle"></h2>
+            <div id="dCounts" class="chips"></div>
+            <div class="row">
+              <button class="btn secondary" id="dApproveAll">Approve all remaining</button>
+              <button class="btn" id="dSend">Send approved emails</button>
+            </div>
+            <div id="dMsg" class="msg"></div>
+          </div>
+          <div id="dMessages"></div>
+        </div>
+      </section>
+
+      <!-- CONTACTS -->
+      <section data-panel="contacts" class="hidden">
+        <div class="card">
+          <h2>Import customers</h2>
+          <p class="muted" style="margin-top:0">Upload a CSV exported from the business's booking or POS system (Square, Vagaro, Booksy, Mindbody, Shopify, a spreadsheet…). Needs an <b>email</b> column. Name, last visit, last service, tags and consent columns are used if present. <a href="/sample-contacts.csv" download>Download a sample CSV</a></p>
+          <p class="muted">Only import people who are customers of the business or agreed to hear from it. Contacts marked "no" for consent are kept but never emailed.</p>
+          <div class="row" style="margin-top:0"><input type="file" id="csvFile" accept=".csv,text/csv" style="max-width:320px" /><button class="btn" id="csvImport">Import</button></div>
+          <div id="csvMsg" class="msg"></div>
+        </div>
+        <div class="card">
+          <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Contacts <span id="contactCount" class="muted"></span></h2><button class="btn secondary" id="csvClear">Delete all contacts</button></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Name</th><th>Email</th><th>Last visit</th><th>Last service</th><th>Tags</th><th>Can email?</th></tr></thead>
+            <tbody id="contactRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- GROW -->
+      <section data-panel="grow" class="hidden">
+        <div class="card">
+          <h2>Write a message to get customers back</h2>
+          <p style="color:var(--muted);margin-top:0">The AI writes a text message and an email using this business's details, offers and tone. Copy it and send it.</p>
+          <div class="grid2">
+            <div>
+              <label for="kind">What kind of message?</label>
+              <select id="kind" class="f">
+                <option value="review_request">⭐ Ask for a review</option>
+                <option value="win_back">💛 Win back an old customer</option>
+                <option value="promo">📣 Announce a promotion</option>
+                <option value="lead_follow_up">📞 Follow up with a new lead</option>
+              </select>
+            </div>
+            <div>
+              <label for="custName">Customer name <small>(optional)</small></label>
+              <input id="custName" placeholder="e.g. Marcus" />
+            </div>
+          </div>
+          <label for="notes">Notes for the AI <small>(optional)</small></label>
+          <input id="notes" placeholder="e.g. 20% off this weekend only, or: asked about teeth whitening" />
+          <div class="row"><button class="btn" id="draftBtn">Write it</button></div>
+          <div id="draftOut" class="hidden">
+            <label>Text message (SMS)</label><div class="out" id="dSms"></div>
+            <div class="row"><button class="btn secondary" data-copy="dSms">Copy SMS</button></div>
+            <label>Email subject</label><div class="out" id="dSubj"></div>
+            <label>Email</label><div class="out" id="dBody"></div>
+            <div class="row"><button class="btn secondary" data-copy="dBody">Copy email</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETUP -->
+      <section data-panel="setup" class="hidden">
+        <div class="card">
+          <h2 id="setupTitle">Business setup</h2>
+          <p style="color:var(--muted);margin-top:0">This is what makes the agent custom for each client. Everything here is what the AI knows. It won't make up anything that isn't here.</p>
+          <div class="row" style="margin-top:0"><button class="btn secondary" id="newBizBtn">+ Set up a new business</button></div>
+          <form id="bizForm">
+            <input type="hidden" name="id" />
+            <div class="grid2">
+              <div><label>Business name</label><input name="name" required /></div>
+              <div><label>Type <small>(barbershop, dentist, gym…)</small></label><input name="type" /></div>
+              <div><label>Tagline</label><input name="tagline" /></div>
+              <div><label>Brand color</label><input name="brandColor" type="color" value="#2563eb" style="height:40px;padding:4px" /></div>
+              <div><label>Phone</label><input name="phone" /></div>
+              <div><label>Email</label><input name="email" /></div>
+              <div><label>Address</label><input name="address" /></div>
+              <div><label>Hours</label><input name="hours" placeholder="Mon–Fri 9am–6pm, Sat 10am–4pm" /></div>
+              <div><label>Booking link</label><input name="bookingLink" placeholder="https://…" /></div>
+              <div><label>Google review link</label><input name="reviewLink" placeholder="https://…" /></div>
+            </div>
+            <label>Chat greeting</label><input name="greeting" />
+            <label>Tone of voice</label><input name="tone" placeholder="friendly, casual, confident" />
+            <label>Main goal for the agent</label><input name="goal" placeholder="Get visitors to book an appointment" />
+            <label>Services <small>one per line: Name | Price | Duration</small></label>
+            <textarea name="services" placeholder="Haircut | $30 | 30 min"></textarea>
+            <label>FAQs <small>one per line: Question | Answer</small></label>
+            <textarea name="faqs" placeholder="Do you take walk-ins? | Yes, when a chair is free."></textarea>
+            <label>Current offers <small>one per line</small></label>
+            <textarea name="offers"></textarea>
+            <label>Policies <small>one per line</small></label>
+            <textarea name="policies"></textarea>
+            <div class="row"><button class="btn">Save business</button></div>
+            <div id="saveMsg" class="msg"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- INSTALL -->
+      <section data-panel="install" class="hidden">
+        <div class="card">
+          <h2>Put the agent on the client's website</h2>
+          <p>Paste this one line before <b>&lt;/body&gt;</b> on their site (works with WordPress, Wix, Squarespace and Shopify custom-code blocks):</p>
+          <pre id="snippet"></pre>
+          <div class="row"><button class="btn secondary" data-copy="snippet">Copy code</button></div>
+          <h2 style="margin-top:24px">Demo page</h2>
+          <p>Show the owner their agent on a sample page. Great for screen recordings and sales calls:</p>
+          <div class="row" style="margin-top:0"><a class="btn" id="demoLink" target="_blank" rel="noopener">Open demo page</a></div>
+          <p style="color:var(--muted)">Note: <code style="display:inline;padding:2px 6px">localhost</code> only works on this computer. To install on a real client site, the server has to be deployed online first.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    let KEY = '';
+    let bizId = '';
+    let STATUS = null;
+    const $ = (s) => document.querySelector(s);
+    const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
+    const fmt = (iso) => iso ? new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '';
+
+    async function api(path, opts = {}) {
+      const res = await fetch(`/api/admin${path}`, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': KEY, ...(opts.headers || {}) },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+      return data;
+    }
+
+    // ---------- Login ----------
+    try { KEY = sessionStorage.getItem('ma-key') || ''; } catch {}
+    $('#loginForm').addEventListener('submit', (e) => { e.preventDefault(); KEY = $('#pw').value; start(); });
+
+    async function start() {
+      try {
+        const status = await api('/status');
+        try { sessionStorage.setItem('ma-key', KEY); } catch {}
+        $('#login').classList.add('hidden');
+        $('#app').classList.remove('hidden');
+        const pill = $('#aiPill');
+        pill.textContent = status.ai.enabled ? `AI on · ${status.ai.model}` : 'Offline mode (no AI key)';
+        pill.classList.toggle('on', status.ai.enabled);
+        STATUS = status;
+        setupCampaignForm();
+        await loadBusinesses();
+      } catch (err) {
+        $('#loginErr').textContent = KEY ? err.message : '';
+      }
+    }
+
+    async function loadBusinesses(selectId) {
+      const list = await api('/businesses');
+      const sel = $('#bizSelect');
+      sel.replaceChildren(...list.map((b) => { const o = el('option', b.name); o.value = b.id; return o; }));
+      bizId = selectId || bizId || list[0]?.id || '';
+      sel.value = bizId;
+      await refresh();
+    }
+
+    $('#bizSelect').addEventListener('change', (e) => { bizId = e.target.value; refresh(); });
+
+    async function refresh() {
+      if (!bizId) return;
+      await Promise.all([loadLeads(), loadConvos(), loadSetup(), loadContacts(), loadCampaigns()]);
+      closeCampaign();
+      const origin = location.origin;
+      $('#snippet').textContent = `<script src="${origin}/widget.js" data-business="${bizId}" defer><\/script>`;
+      $('#demoLink').href = `/demo/${bizId}`;
+    }
+
+    // ---------- Tabs ----------
+    $('#tabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('button')?.dataset.tab;
+      if (!tab) return;
+      document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== tab));
+      if (tab === 'leads' || tab === 'chats') refresh();
+    });
+
+    // ---------- Leads ----------
+    async function loadLeads() {
+      const leads = await api(`/businesses/${bizId}/leads`);
+      $('#sLeads').textContent = leads.length;
+      $('#sNew').textContent = leads.filter((l) => l.status === 'new').length;
+      $('#sBooked').textContent = leads.filter((l) => l.status === 'booked').length;
+      const rows = $('#leadRows');
+      if (!leads.length) {
+        const td = el('td', 'No leads yet. Open the demo page and chat with the agent, leaving a name and phone number.', 'empty');
+        td.colSpan = 6; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
+      }
+      rows.replaceChildren(...leads.map((l) => {
+        const tr = el('tr');
+        tr.append(el('td', fmt(l.createdAt)), el('td', l.name || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', l.interest || '—'));
+        const sel = document.createElement('select');
+        for (const s of ['new', 'contacted', 'booked', 'lost']) { const o = el('option', s); o.value = s; sel.append(o); }
+        sel.value = l.status;
+        sel.addEventListener('change', async () => { await api(`/leads/${l.id}`, { method: 'PATCH', body: JSON.stringify({ status: sel.value }) }); loadLeads(); });
+        const td = el('td'); td.append(sel); tr.append(td);
+        return tr;
+      }));
+    }
+
+    // ---------- Conversations ----------
+    async function loadConvos() {
+      const convos = await api(`/businesses/${bizId}/conversations`);
+      $('#sChats').textContent = convos.length;
+      const box = $('#convos');
+      if (!convos.length) { box.replaceChildren(el('div', 'No conversations yet.', 'empty')); return; }
+      box.replaceChildren(...convos.map((c) => {
+        const d = el('details', null, 'convo');
+        const s = el('summary');
+        const first = c.messages.find((m) => m.role === 'user')?.content || '';
+        s.append(el('b', first.slice(0, 70) || '(empty)'), el('span', `${c.messages.length} messages · ${fmt(c.updatedAt)}`));
+        const lines = el('div', null, 'lines');
+        for (const m of c.messages) lines.append(el('div', m.content, `line ${m.role}`));
+        d.append(s, lines);
+        return d;
+      }));
+    }
+
+    // ---------- Grow & retain ----------
+    $('#draftBtn').addEventListener('click', async () => {
+      const btn = $('#draftBtn');
+      btn.disabled = true; btn.textContent = 'Writing…';
+      try {
+        const d = await api(`/businesses/${bizId}/draft`, {
+          method: 'POST',
+          body: JSON.stringify({ kind: $('#kind').value, customerName: $('#custName').value, notes: $('#notes').value }),
+        });
+        $('#dSms').textContent = d.sms; $('#dSubj').textContent = d.emailSubject; $('#dBody').textContent = d.emailBody;
+        $('#draftOut').classList.remove('hidden');
+      } catch (err) { alert(err.message); }
+      btn.disabled = false; btn.textContent = 'Write it';
+    });
+
+    document.addEventListener('click', async (e) => {
+      const id = e.target.dataset?.copy;
+      if (!id) return;
+      const btn = e.target;
+      const label = btn.dataset.label || (btn.dataset.label = btn.textContent);
+      try { await navigator.clipboard.writeText($(`#${id}`).textContent); btn.textContent = 'Copied ✓'; setTimeout(() => (btn.textContent = label), 1500); } catch {}
+    });
+
+    // ---------- Setup ----------
+    const form = $('#bizForm');
+    const joinLines = (arr, fn) => (arr || []).map(fn).join('\n');
+    const splitLines = (text) => text.split('\n').map((l) => l.trim()).filter(Boolean);
+
+    async function loadSetup() {
+      const b = await api(`/businesses/${bizId}`);
+      fillForm(b);
+    }
+
+    function fillForm(b) {
+      $('#setupTitle').textContent = b.id ? `Business setup: ${b.name}` : 'Set up a new business';
+      for (const k of ['id', 'name', 'type', 'tagline', 'phone', 'email', 'address', 'hours', 'bookingLink', 'reviewLink', 'greeting', 'tone', 'goal']) form.elements[k].value = b[k] || '';
+      form.elements.brandColor.value = b.brandColor || '#2563eb';
+      form.elements.services.value = joinLines(b.services, (s) => [s.name, s.price, s.duration].filter(Boolean).join(' | '));
+      form.elements.faqs.value = joinLines(b.faqs, (f) => `${f.q} | ${f.a}`);
+      form.elements.offers.value = (b.offers || []).join('\n');
+      form.elements.policies.value = (b.policies || []).join('\n');
+      $('#saveMsg').textContent = '';
+    }
+
+    $('#newBizBtn').addEventListener('click', () => fillForm({}));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = form.elements;
+      const body = {
+        id: f.id.value, name: f.name.value, type: f.type.value, tagline: f.tagline.value, brandColor: f.brandColor.value,
+        phone: f.phone.value, email: f.email.value, address: f.address.value, hours: f.hours.value,
+        bookingLink: f.bookingLink.value, reviewLink: f.reviewLink.value, greeting: f.greeting.value, tone: f.tone.value, goal: f.goal.value,
+        services: splitLines(f.services.value).map((l) => { const [name, price, duration] = l.split('|').map((x) => x.trim()); return { name, price, duration }; }),
+        faqs: splitLines(f.faqs.value).map((l) => { const i = l.indexOf('|'); return i < 0 ? null : { q: l.slice(0, i).trim(), a: l.slice(i + 1).trim() }; }).filter(Boolean),
+        offers: splitLines(f.offers.value),
+        policies: splitLines(f.policies.value),
+      };
+      const msg = $('#saveMsg');
+      try {
+        const saved = await api('/businesses', { method: 'POST', body: JSON.stringify(body) });
+        msg.className = 'msg ok'; msg.textContent = `Saved ✓ The agent now uses these details.`;
+        await loadBusinesses(saved.id);
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+    });
+
+    // ---------- Contacts ----------
+    async function loadContacts() {
+      const contacts = await api(`/businesses/${bizId}/contacts`);
+      $('#contactCount').textContent = `(${contacts.length})`;
+      const rows = $('#contactRows');
+      if (!contacts.length) {
+        const td = el('td', 'No contacts yet. Import a CSV above, or try the sample file.', 'empty');
+        td.colSpan = 6; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
+      }
+      rows.replaceChildren(...contacts.map((c) => {
+        const tr = el('tr');
+        const ok = c.unsubscribed ? 'Unsubscribed' : c.consent ? 'Yes' : 'No consent';
+        tr.append(
+          el('td', [c.firstName, c.lastName].filter(Boolean).join(' ') || '—'), el('td', c.email),
+          el('td', c.lastVisit || '—'), el('td', c.lastService || '—'), el('td', (c.tags || []).join(', ') || '—'), el('td', ok)
+        );
+        return tr;
+      }));
+    }
+
+    $('#csvImport').addEventListener('click', async () => {
+      const file = $('#csvFile').files[0];
+      const msg = $('#csvMsg');
+      if (!file) { msg.className = 'msg err'; msg.textContent = 'Choose a CSV file first.'; return; }
+      try {
+        const r = await api(`/businesses/${bizId}/contacts/import`, { method: 'POST', body: JSON.stringify({ csv: await file.text() }) });
+        msg.className = 'msg ok';
+        msg.textContent = `Imported ✓ ${r.added} added, ${r.updated} updated, ${r.skipped} skipped (no valid email), ${r.noConsent} without marketing consent.`;
+        await loadContacts();
+        updateAudience();
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+    });
+
+    $('#csvClear').addEventListener('click', async () => {
+      if (!confirm('Delete ALL contacts for this business? This cannot be undone.')) return;
+      await api(`/businesses/${bizId}/contacts`, { method: 'DELETE' });
+      loadContacts();
+    });
+
+    // ---------- Campaigns ----------
+    let openCampaignId = null;
+    let pollTimer = null;
+
+    function setupCampaignForm() {
+      $('#cGoal').replaceChildren(...Object.entries(STATUS.campaignGoals).map(([k, label]) => { const o = el('option', label); o.value = k; return o; }));
+      const banner = $('#mailBanner');
+      if (STATUS.email.live) { banner.className = 'banner-note live'; banner.textContent = `Live sending is ON (${STATUS.email.provider}). Approved emails go to real inboxes.`; }
+      else if (STATUS.email.provider === 'log') { banner.className = 'banner-note test'; banner.textContent = 'Test mode: approved emails are saved on this computer (data/outbox.json). Nobody gets emailed. Set EMAIL_PROVIDER in .env to send for real.'; }
+      else { banner.className = 'banner-note test'; banner.textContent = `Email provider "${STATUS.email.provider}" is not configured. Add EMAIL_API_KEY and EMAIL_FROM_ADDRESS to .env.`; }
+    }
+
+    const audienceQuery = () => new URLSearchParams({ inactiveDays: $('#cInactive').value, tag: $('#cTag').value.trim() });
+    async function updateAudience() {
+      if (!bizId) return;
+      try { const { count } = await api(`/businesses/${bizId}/audience?${audienceQuery()}`); $('#cAudience').textContent = `${count} ${count === 1 ? 'person' : 'people'} will get this`; } catch {}
+    }
+    $('#cInactive').addEventListener('change', updateAudience);
+    $('#cTag').addEventListener('input', updateAudience);
+
+    $('#cCreate').addEventListener('click', async () => {
+      const btn = $('#cCreate'); const msg = $('#cMsg'); msg.textContent = '';
+      btn.disabled = true;
+      try {
+        const c = await api(`/businesses/${bizId}/campaigns`, {
+          method: 'POST',
+          body: JSON.stringify({ goal: $('#cGoal').value, name: $('#cName').value, notes: $('#cNotes').value, audience: { inactiveDays: $('#cInactive').value, tag: $('#cTag').value } }),
+        });
+        $('#cName').value = ''; $('#cNotes').value = '';
+        await loadCampaigns();
+        openCampaign(c.id);
+      } catch (err) { msg.textContent = err.message; }
+      btn.disabled = false;
+    });
+
+    const STATUS_LABELS = { generating: 'Writing emails…', review: 'Waiting for your review', sending: 'Sending…', done: 'Done' };
+    function countChips(counts) {
+      const box = el('div', null, 'chips');
+      for (const [k, label] of [['review', 'to review'], ['approved', 'approved'], ['sent', 'sent'], ['skipped', 'skipped'], ['failed', 'failed']]) {
+        if (counts[k]) box.append(el('span', `${counts[k]} ${label}`, `chip ${k}`));
+      }
+      return box;
+    }
+
+    async function loadCampaigns() {
+      updateAudience();
+      const list = await api(`/businesses/${bizId}/campaigns`);
+      const box = $('#campaigns');
+      if (!list.length) { box.replaceChildren(el('div', 'No campaigns yet. Import contacts, then create one above.', 'empty')); return; }
+      box.replaceChildren(...list.map((c) => {
+        const row = el('div', null, 'camp');
+        const left = el('div');
+        left.append(el('b', c.name), el('div', `${fmt(c.createdAt)} · ${c.total} recipients`, 'muted'));
+        const right = el('div', null, 'chips');
+        right.append(el('span', STATUS_LABELS[c.status] || c.status, `chip ${c.status}`), countChips(c.counts));
+        row.append(left, right);
+        row.addEventListener('click', () => openCampaign(c.id));
+        return row;
+      }));
+    }
+
+    function closeCampaign() {
+      openCampaignId = null; clearTimeout(pollTimer);
+      $('#campaignDetail').classList.add('hidden'); $('#campaignList').classList.remove('hidden');
+    }
+    $('#cBack').addEventListener('click', () => { closeCampaign(); loadCampaigns(); });
+
+    async function openCampaign(id) {
+      openCampaignId = id;
+      $('#campaignList').classList.add('hidden'); $('#campaignDetail').classList.remove('hidden');
+      $('#dMsg').textContent = '';
+      await renderCampaign(true);
+    }
+
+    async function renderCampaign(full) {
+      clearTimeout(pollTimer);
+      if (!openCampaignId) return;
+      const c = await api(`/campaigns/${openCampaignId}`);
+      $('#dTitle').textContent = `${c.name}: ${STATUS_LABELS[c.status] || c.status}`;
+      $('#dCounts').replaceChildren(countChips(c.counts));
+      $('#dApproveAll').disabled = !c.counts.review || c.status !== 'review';
+      $('#dSend').disabled = !c.counts.approved || c.status !== 'review';
+      if (c.error) { $('#dMsg').className = 'msg err'; $('#dMsg').textContent = c.error; }
+
+      const busy = c.status === 'generating' || c.status === 'sending';
+      // Re-render the email cards when needed, but don't wipe edits the owner is typing.
+      if (full || busy || $('#dMessages').children.length !== c.messages.length) renderEmails(c);
+      if (busy) pollTimer = setTimeout(() => renderCampaign(false), 1500);
+    }
+
+    function renderEmails(c) {
+      const box = $('#dMessages');
+      if (!c.messages.length) { box.replaceChildren(el('div', 'Writing emails…', 'card empty')); return; }
+      box.replaceChildren(...c.messages.map((m) => {
+        const card = el('div', null, `email ${m.status}`);
+        const to = el('div', null, 'to');
+        to.append(el('b', m.toName || m.to), el('span', m.to, 'muted'), el('span', m.status, `chip ${m.status}`));
+        const subj = document.createElement('input'); subj.value = m.subject; subj.setAttribute('aria-label', 'Subject');
+        const body = document.createElement('textarea'); body.value = m.body; body.setAttribute('aria-label', 'Email text');
+        const locked = m.status === 'sent' || c.status !== 'review';
+        subj.disabled = body.disabled = locked;
+        const actions = el('div', null, 'row');
+        const act = (label, status, cls = 'btn secondary') => {
+          const b = el('button', label, cls);
+          b.disabled = locked;
+          b.addEventListener('click', async () => {
+            try {
+              await api(`/messages/${m.id}`, { method: 'PATCH', body: JSON.stringify({ subject: subj.value, body: body.value, status }) });
+              renderCampaign(true);
+            } catch (err) { alert(err.message); }
+          });
+          return b;
+        };
+        if (m.status !== 'approved') actions.append(act('Approve', 'approved', 'btn'));
+        if (m.status !== 'skipped') actions.append(act("Don't send", 'skipped'));
+        actions.append(act('Save edits', undefined));
+        card.append(to, subj, el('div', null), body, actions);
+        card.children[2].style.height = '8px';
+        if (m.error) card.append(el('div', m.error, 'err'));
+        return card;
+      }));
+    }
+
+    $('#dApproveAll').addEventListener('click', async () => {
+      await api(`/campaigns/${openCampaignId}/approve-all`, { method: 'POST' });
+      renderCampaign(true);
+    });
+
+    $('#dSend').addEventListener('click', async () => {
+      const live = STATUS.email.live;
+      if (live && !confirm('Send all approved emails to real inboxes now?')) return;
+      const msg = $('#dMsg');
+      try {
+        const r = await api(`/campaigns/${openCampaignId}/send`, { method: 'POST' });
+        msg.className = 'msg ok';
+        msg.textContent = `${live ? 'Sending' : 'Test-sending'} ${r.queued} emails…${r.limitedBy ? ` (daily limit of ${r.limitedBy} reached; the rest can go tomorrow)` : ''}`;
+        renderCampaign(true);
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+    });
+
+    if (KEY) start();
+  </script>
+</body>
+</html>
