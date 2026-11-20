@@ -269,6 +269,12 @@ ${isPreview ? '<a class="btn" href="/admin#leads" style="background:transparent;
 
 app.use(express.static(PUBLIC_DIR, { index: false }));
 app.get('/demo/:id', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'demo.html')));
+// A bare /demo link opens the first business's demo instead of a "Not found" error.
+app.get('/demo', (req, res) => {
+  const first = listBusinesses()[0];
+  if (!first) return res.status(404).json({ error: 'Not found' });
+  res.redirect(`/demo/${first.id}`);
+});
 app.get('/admin', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'admin.html')));
 app.get('/', (req, res) => res.redirect('/admin'));
 // Hosting platforms ping this to check the app is alive.
