@@ -97,6 +97,8 @@
     .login-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px; }
     .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; text-decoration: none; }
     .brand img { width: 28px; height: 28px; border-radius: 8px; }
+    .brand span { white-space: nowrap; }
+    @media (max-width: 419px) { .login-top .brand span { display: none; } }
     .login-main { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 64px; align-items: center; padding: 20px 28px 56px; }
     .hero { font-size: clamp(44px, 6.2vw, 88px); line-height: .96; font-weight: 750; letter-spacing: -0.05em; margin: 0 0 22px; text-wrap: balance; }
     .lede { color: var(--slate); font-size: 18px; max-width: 44ch; margin: 0 0 30px; text-wrap: pretty; }
@@ -254,7 +256,9 @@
     /* ---------- Tablets ---------- */
     @media (max-width: 900px) {
       main { padding: 22px 18px 56px; }
-      .topbar { padding: 10px 18px; }
+      .topbar { padding: 10px 18px; flex-wrap: wrap; }
+      .topbar .brand span, .ai-pill { display: none; }
+      #bizSelect { flex: 0 1 240px; min-width: 0; text-overflow: ellipsis; }
       .summary-inner { grid-template-columns: 1fr 1fr; }
       .stat:nth-child(3) { border-left: 0; }
       .stat:nth-child(n+3) { border-top: 1px solid var(--hair); }
@@ -267,18 +271,25 @@
       .login-card { padding: 22px 18px; border-radius: 24px; }
       .topbar { flex-wrap: wrap; padding: 10px 16px; gap: 8px 10px; }
       .topbar .brand span { display: none; }
-      #bizSelect { order: 5; flex: 1 1 100%; max-width: none; }
+      #bizSelect { order: 5; flex: 1 1 100%; max-width: none; min-width: 0; width: 100%; text-overflow: ellipsis; }
       .ai-pill { display: none; }
       main { padding: 18px 16px 48px; }
       .card { padding: 18px 16px; border-radius: 20px; }
       .grid2 { grid-template-columns: 1fr; }
       .stat { padding: 14px; }
       .stat b { font-size: 30px; }
-      /* 16px stops iPhones from zooming in when you tap a field */
-      input, textarea, select, td select { font-size: 16px; }
       .row .btn { flex: 1 1 auto; }
       .line { max-width: 92%; }
-      /* Tables turn into stacked cards */
+      td:last-child .btn { width: 100%; margin-top: 8px; }
+    }
+
+    /* 16px stops iPhones and iPads from zooming in when you tap a field */
+    @media (pointer: coarse), (max-width: 640px) {
+      input, textarea, select, td select { font-size: 16px; }
+    }
+
+    /* Phones, foldables and portrait iPads: tables turn into stacked cards */
+    @media (max-width: 900px) {
       .table-wrap { margin: 0; overflow: visible; }
       table, tbody, tr, td { display: block; width: 100%; }
       thead { display: none; }
@@ -286,7 +297,10 @@
       td { border: 0; padding: 3px 0; }
       td.empty { border: 0; }
       td[data-label]:not(:first-child)::before { content: attr(data-label); display: block; font-size: 12px; color: var(--slate); }
-      td:last-child .btn { width: 100%; margin-top: 8px; }
+    }
+    @media (min-width: 641px) and (max-width: 900px) {
+      tr:has(td[data-label]) { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; }
+      tr:has(td[data-label]) td:first-child { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -295,7 +309,7 @@
   <div id="login">
     <canvas id="dots" aria-hidden="true"></canvas>
     <div class="login-top">
-      <span class="brand"><img src="/icon.svg" alt="" />Marketing Agent</span>
+      <span class="brand"><img src="/icon.svg" alt="" /><span>Marketing Agent</span></span>
       <div class="theme-switch" data-theme-switch></div>
     </div>
     <div class="login-main">
