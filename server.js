@@ -1,11 +1,11 @@
 import express from 'express';
 import path from 'node:path';
 import { getBusiness, listBusinesses, saveBusiness, publicProfile, isValidId } from './lib/businesses.js';
-import { getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus } from './lib/store.js';
+import { getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts } from './lib/store.js';
 import { chatReply, draftMessage, draftKinds, aiInfo, CAMPAIGN_GOALS } from './lib/ai.js';
-import { importContacts, listContacts, deleteContacts, unsubscribeByToken } from './lib/contacts.js';
+import { importContacts, listContacts, deleteContacts, unsubscribeByToken, getContactByReferralCode, backfillReferralCodes } from './lib/contacts.js';
 import { previewAudience, createCampaign, listCampaigns, getCampaign, updateMessage, approveAll, startSending } from './lib/campaigns.js';
-import { mailerInfo } from './lib/mailer.js';
+import { mailerInfo, sendEmail } from './lib/mailer.js';
 import {
   safeEqual,
   isWeakPassword,
@@ -87,10 +87,113 @@ app.post('/api/public/chat', async (req, res) => {
     { role: 'user', content: text },
     { role: 'assistant', content: result.reply },
   ]);
-  const lead = upsertLead(businessId, sessionId, result.lead || {});
-  if (lead) console.log(`[lead] ${biz.name}: new or updated lead`);
+  const { lead, created } = upsertLead(businessId, sessionId, result.lead || {});
+  if (created) notifyOwner(biz, lead);
 
   res.json({ reply: result.reply });
+});
+
+// ---------- Instant owner alerts ----------
+// The faster a business replies to a new inquiry, the more likely it becomes a
+// customer, so the owner is emailed the moment someone leaves their details.
+// (In test mode the alert is saved to data/outbox.json like every other email.)
+
+function notifyOwner(biz, lead) {
+  console.log(`[inquiry] ${biz.name}: new ${lead.source === 'referral' ? 'referral' : 'website chat'} inquiry`);
+  if (!biz.email) return;
+  const how = lead.source === 'referral' ? `They were invited by your customer ${lead.referredByName}.` : 'They chatted with your website assistant.';
+  const lines = [
+    `New inquiry for ${biz.name}! ${how}`,
+    '',
+    `Name: ${lead.name || '(not given)'}`,
+    `Phone: ${lead.phone || '(not given)'}`,
+    `Email: ${lead.email || '(not given)'}`,
+    `Interested in: ${lead.interest || '(not given)'}`,
+    '',
+    'Reply quickly: people who hear back within minutes are far more likely to book.',
+  ];
+  sendEmail({ to: biz.email, toName: biz.name, fromName: 'Marketing Agent', subject: `New inquiry: ${lead.name || lead.phone || lead.email}`, text: lines.join('\n') }).catch((err) =>
+    console.error('[inquiry] owner alert failed:', err.message)
+  );
+}
+
+// ---------- Referral invite page ----------
+// A customer's personal link: /r/ADAEZE-K7Q2. Their friend sees the offer and
+// leaves their details; the business gets a new inquiry marked "referred by Adaeze".
+
+const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+function invitePage(biz, referrer, { body, title }) {
+  const color = /^#[0-9a-fA-F]{6}$/.test(biz.brandColor || '') ? biz.brandColor : '#2563eb';
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(title)}</title>
+<style>
+:root{color-scheme:light dark;--bg:#f5f6f8;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--brand:${color}}
+@media (prefers-color-scheme:dark){:root{--bg:#0b0f17;--card:#131a24;--text:#e6e9ef;--muted:#8b95a7;--line:#263042}}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:16px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:440px;width:100%;overflow:hidden}
+.top{background:var(--brand);color:#fff;padding:24px 22px}.top small{opacity:.85}.top h1{margin:6px 0 0;font-size:24px;line-height:1.2}
+.in{padding:20px 22px}.offer{border:2px dashed var(--brand);border-radius:12px;padding:14px;margin:0 0 16px;font-weight:600;font-size:17px}
+label{display:block;font-weight:600;margin:12px 0 4px;font-size:14px}input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:var(--bg);color:var(--text)}
+button,.btn{display:block;width:100%;text-align:center;background:var(--brand);color:#fff;border:0;border-radius:10px;padding:14px;font-size:16px;font-weight:700;margin-top:16px;cursor:pointer;text-decoration:none}
+.muted{color:var(--muted);font-size:13px}.hp{position:absolute;left:-9999px}.err{color:#dc2626;font-weight:600}
+</style></head><body><div class="c"><div class="top"><small>${escapeHtml(referrer.firstName || 'A friend')} invited you to</small><h1>${escapeHtml(biz.name)}</h1></div><div class="in">${body}</div></div></body></html>`;
+}
+
+const referralLimit = rateLimiter({ windowMs: 15 * 60_000, max: 20 });
+app.use('/r', express.urlencoded({ extended: false, limit: '4kb' }));
+
+app.get('/r/:code', (req, res) => {
+  const referrer = getContactByReferralCode(req.params.code);
+  const biz = referrer && getBusiness(referrer.businessId);
+  if (!biz) return res.status(404).send(page('Invite not found', '<h2>Invite link not found</h2><p>Please check the link and try again.</p>'));
+  const services = (biz.services || []).slice(0, 4).map((s) => `${escapeHtml(s.name)}${s.price ? ` · ${escapeHtml(s.price)}` : ''}`).join('<br>');
+  res.send(
+    invitePage(biz, referrer, {
+      title: `${referrer.firstName || 'A friend'} invited you to ${biz.name}`,
+      body: `<div class="offer">🎁 ${escapeHtml(biz.referralOffer || 'A special welcome offer')}</div>
+<p>${escapeHtml(biz.tagline || '')}</p>
+${services ? `<p class="muted">${services}</p>` : ''}
+<form method="post" action="/r/${escapeHtml(referrer.referralCode)}">
+<label for="name">Your name</label><input id="name" name="name" required maxlength="80" autocomplete="name">
+<label for="phone">Phone or WhatsApp number</label><input id="phone" name="phone" maxlength="40" autocomplete="tel" inputmode="tel">
+<label for="email">Email <span class="muted">(optional if you gave a phone)</span></label><input id="email" name="email" type="email" maxlength="120" autocomplete="email">
+<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<button>Claim my offer</button>
+<p class="muted">${escapeHtml(biz.name)} will contact you to book. Your details are only shared with them.</p>
+</form>`,
+    })
+  );
+});
+
+app.post('/r/:code', (req, res) => {
+  const referrer = getContactByReferralCode(req.params.code);
+  const biz = referrer && getBusiness(referrer.businessId);
+  if (!biz) return res.status(404).send(page('Invite not found', '<h2>Invite link not found</h2>'));
+  if (!referralLimit(req.ip).allowed) return res.status(429).send(page('Slow down', '<h2>Too many requests</h2><p>Please try again later.</p>'));
+
+  const { name = '', phone = '', email = '', website = '' } = req.body || {};
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+  const validPhone = String(phone).replace(/\D/g, '').length >= 7;
+  // "website" is an invisible field: humans leave it empty, spam bots fill it in.
+  if (!website && String(name).trim() && (validPhone || validEmail)) {
+    const lead = addReferralLead(biz.id, referrer, { name: String(name), phone: validPhone ? String(phone) : '', email: validEmail ? String(email) : '' });
+    notifyOwner(biz, lead);
+  } else if (!website) {
+    return res.status(400).send(
+      invitePage(biz, referrer, {
+        title: 'Please check your details',
+        body: `<p class="err">Please enter your name and a phone number or email.</p><a class="btn" href="/r/${escapeHtml(referrer.referralCode)}">Go back</a>`,
+      })
+    );
+  }
+  res.send(
+    invitePage(biz, referrer, {
+      title: 'Offer claimed',
+      body: `<h2 style="margin-top:0">You're in! 🎉</h2><p>${escapeHtml(biz.name)} has your details and will contact you to book. Your offer: <b>${escapeHtml(biz.referralOffer || 'welcome offer')}</b>.</p>
+${/^https?:\/\//i.test(biz.bookingLink || '') ? `<a class="btn" href="${escapeHtml(biz.bookingLink)}" rel="noopener">Book now</a>` : ''}`,
+    })
+  );
 });
 
 // ---------- Static files and pages ----------
@@ -233,7 +336,13 @@ const withBiz = (handler) => (req, res) => {
   }
 };
 
-admin.get('/businesses/:id/contacts', withBiz((biz) => listContacts(biz.id)));
+admin.get(
+  '/businesses/:id/contacts',
+  withBiz((biz) => {
+    const counts = referralCounts(biz.id);
+    return listContacts(biz.id).map((c) => ({ ...c, referrals: counts[c.id] || 0 }));
+  })
+);
 admin.post('/businesses/:id/contacts/import', withBiz((biz, req) => importContacts(biz.id, String(req.body?.csv || ''))));
 admin.delete('/businesses/:id/contacts', withBiz((biz) => (deleteContacts(biz.id), { ok: true })));
 
@@ -271,6 +380,8 @@ app.use((err, req, res, next) => {
   console.error('[error]', err);
   res.status(500).json({ error: 'Something went wrong.' });
 });
+
+backfillReferralCodes(); // contacts imported before referrals existed get an invite code
 
 app.listen(PORT, () => {
   const ai = aiInfo();

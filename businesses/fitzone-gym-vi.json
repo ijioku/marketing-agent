@@ -13,21 +13,54 @@
   "bookingLink": "https://example.com/join/fitzone",
   "reviewLink": "https://example.com/review/fitzone",
   "services": [
-    { "name": "Monthly membership", "price": "₦45,000", "duration": "1 month" },
-    { "name": "3-month membership", "price": "₦120,000", "duration": "3 months" },
-    { "name": "Personal training session", "price": "₦15,000", "duration": "1 hr" },
-    { "name": "Day pass", "price": "₦5,000", "duration": "1 day" },
-    { "name": "Group classes (HIIT, spin, yoga)", "price": "Included with membership", "duration": "45 min" }
+    {
+      "name": "Monthly membership",
+      "price": "₦45,000",
+      "duration": "1 month"
+    },
+    {
+      "name": "3-month membership",
+      "price": "₦120,000",
+      "duration": "3 months"
+    },
+    {
+      "name": "Personal training session",
+      "price": "₦15,000",
+      "duration": "1 hr"
+    },
+    {
+      "name": "Day pass",
+      "price": "₦5,000",
+      "duration": "1 day"
+    },
+    {
+      "name": "Group classes (HIIT, spin, yoga)",
+      "price": "Included with membership",
+      "duration": "45 min"
+    }
   ],
   "faqs": [
-    { "q": "Do you have a free trial?", "a": "Yes, your first session is free. Just come with ID and gym clothes." },
-    { "q": "Is there a generator / constant power?", "a": "Yes, we have 24/7 backup power and full air conditioning." },
-    { "q": "Do you have showers and lockers?", "a": "Yes, clean showers and free lockers. Bring your own padlock." }
+    {
+      "q": "Do you have a free trial?",
+      "a": "Yes, your first session is free. Just come with ID and gym clothes."
+    },
+    {
+      "q": "Is there a generator / constant power?",
+      "a": "Yes, we have 24/7 backup power and full air conditioning."
+    },
+    {
+      "q": "Do you have showers and lockers?",
+      "a": "Yes, clean showers and free lockers. Bring your own padlock."
+    }
   ],
   "offers": [
     "New members: first session free",
     "Come back this month: 20% off a 3-month membership for returning members"
   ],
-  "policies": ["Memberships can be paused for up to 30 days per year", "Personal training sessions need 12 hours' notice to reschedule"],
-  "goal": "Get visitors to book a free trial, and win back members who stopped coming"
+  "policies": [
+    "Memberships can be paused for up to 30 days per year",
+    "Personal training sessions need 12 hours' notice to reschedule"
+  ],
+  "goal": "Get visitors to book a free trial, and win back members who stopped coming",
+  "referralOffer": "Your friend gets a free week, and you get 2 weeks added to your membership"
 }
