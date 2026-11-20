@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Marketing Agent</title>
   <!-- Installable as a phone/desktop app (PWA) -->
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <meta name="theme-color" content="#0b0f17" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0d0e11" media="(prefers-color-scheme: dark)" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Marketing" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&display=swap" />
   <script>
     // Theme follows the device (light/dark) unless the user picks one with the switch.
     (function () {
@@ -20,199 +24,332 @@
     })();
   </script>
   <style>
-    :root, :root[data-theme="dark"] {
-      color-scheme: dark;
-      --bg: #0b0f17; --card: #131a24; --surface: #1a2230; --text: #e6e9ef; --muted: #8b95a7; --line: #263042;
-      --input-border: #334155; --brand: #3b82f6; --ok: #22c55e; --bad: #f87171; --header: #070a10; --btn2: #263042;
-      --code-bg: #070a10; --code-text: #e5e7eb; --warn-bg: rgba(245, 158, 11, .14); --warn-text: #fcd34d;
-      --ok-bg: rgba(34, 197, 94, .14); --ok-text: #86efac;
-    }
-    :root[data-theme="light"] {
+    /* ---------- Tokens ---------- */
+    :root {
       color-scheme: light;
-      --bg: #f5f6f8; --card: #ffffff; --surface: #f3f4f6; --text: #111827; --muted: #6b7280; --line: #e5e7eb;
-      --input-border: #d1d5db; --brand: #2563eb; --ok: #16a34a; --bad: #dc2626; --header: #111827; --btn2: #e5e7eb;
-      --code-bg: #111827; --code-text: #e5e7eb; --warn-bg: #fef3c7; --warn-text: #78350f;
-      --ok-bg: #dcfce7; --ok-text: #14532d;
+      --canvas: #ffffff; --raised: #ffffff; --mist: #f4f6f9; --ink: #1b1c1f; --slate: #5e6470; --hair: #e6e8ec; --hair-strong: #d5d9e0;
+      --on-ink: #ffffff; --ok: #188a4f; --bad: #c9372c; --warn-bg: #fff6dc; --warn-text: #7a5300; --ok-bg: #e6f6ec; --ok-text: #135c36;
+      --dot: rgba(27, 28, 31, .22); --shadow: 0 1px 2px rgba(20, 24, 33, .04), 0 8px 28px rgba(20, 24, 33, .06);
+      --blue: #4c8df6; --green: #3dba7a; --yellow: #f6c343; --coral: #ee6a55; --wa: #1f9d55;
+      --font: 'Google Sans Flex', 'Google Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
-    @media (prefers-color-scheme: light) {
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --canvas: #0d0e11; --raised: #16181d; --mist: #1d2026; --ink: #eceef2; --slate: #9aa1ad; --hair: #262a31; --hair-strong: #343943;
+      --on-ink: #0d0e11; --ok: #4fd08b; --bad: #ff7b6e; --warn-bg: rgba(246, 195, 67, .12); --warn-text: #f6d27a; --ok-bg: rgba(61, 186, 122, .13); --ok-text: #8fe0b4;
+      --dot: rgba(236, 238, 242, .28); --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+    }
+    @media (prefers-color-scheme: dark) {
       :root[data-theme="system"] {
-        color-scheme: light;
-        --bg: #f5f6f8; --card: #ffffff; --surface: #f3f4f6; --text: #111827; --muted: #6b7280; --line: #e5e7eb;
-        --input-border: #d1d5db; --brand: #2563eb; --ok: #16a34a; --bad: #dc2626; --header: #111827; --btn2: #e5e7eb;
-        --code-bg: #111827; --code-text: #e5e7eb; --warn-bg: #fef3c7; --warn-text: #78350f;
-        --ok-bg: #dcfce7; --ok-text: #14532d;
+        color-scheme: dark;
+        --canvas: #0d0e11; --raised: #16181d; --mist: #1d2026; --ink: #eceef2; --slate: #9aa1ad; --hair: #262a31; --hair-strong: #343943;
+        --on-ink: #0d0e11; --ok: #4fd08b; --bad: #ff7b6e; --warn-bg: rgba(246, 195, 67, .12); --warn-text: #f6d27a; --ok-bg: rgba(61, 186, 122, .13); --ok-text: #8fe0b4;
+        --dot: rgba(236, 238, 242, .28); --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
       }
     }
+
+    /* ---------- Base ---------- */
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; transition: background .2s, color .2s; }
-    a { color: var(--brand); }
-    header { background: var(--header); color: #fff; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; border-bottom: 1px solid var(--line); }
-    header h1 { font-size: 16px; margin: 0; }
-    header select { padding: 6px 10px; border-radius: 8px; border: 1px solid #334155; font-size: 14px; max-width: 100%; background: #1a2230; color: #e6e9ef; }
-    .pill { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: #374151; color: #fff; }
-    .pill.on { background: #166534; }
-    .theme-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; background: #1f2937; color: #e5e7eb; border: 1px solid #374151; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
-    .theme-toggle:hover { background: #263042; }
-    #login .theme-toggle { background: var(--surface); color: var(--text); border-color: var(--line); }
-    nav { display: flex; gap: 4px; padding: 8px 16px 0; overflow-x: auto; border-bottom: 1px solid var(--line); background: var(--card); }
-    nav button { border: 0; background: none; padding: 10px 14px; cursor: pointer; font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
-    nav button.active { color: var(--text); border-color: var(--brand); font-weight: 600; }
-    main { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    .card h2 { margin: 0 0 12px; font-size: 16px; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
-    .stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
-    .stat b { display: block; font-size: 26px; }
-    .stat span { color: var(--muted); font-size: 13px; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
-    td select { background: var(--surface); color: var(--text); border: 1px solid var(--input-border); border-radius: 6px; padding: 4px 6px; }
-    .empty { color: var(--muted); padding: 20px 0; text-align: center; }
-    label { display: block; font-weight: 600; margin: 12px 0 4px; }
-    label small { font-weight: 400; color: var(--muted); }
-    input, textarea, select.f { width: 100%; padding: 9px 10px; border: 1px solid var(--input-border); border-radius: 8px; font: inherit; background: var(--surface); color: var(--text); }
-    input:focus, textarea:focus, select.f:focus { outline: 2px solid var(--brand); outline-offset: -1px; }
-    input::placeholder, textarea::placeholder { color: var(--muted); }
-    textarea { min-height: 90px; resize: vertical; }
-    .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 16px; }
-    .btn { background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 9px 16px; font-weight: 600; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
-    .btn.secondary { background: var(--btn2); color: var(--text); }
-    .link-btn { background: none; border: 0; padding: 4px 0 0; color: #dc2626; font-size: 12px; font-weight: 600; cursor: pointer; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: var(--font); background: var(--canvas); color: var(--ink); font-size: 15px; line-height: 1.5; transition: background .25s, color .25s; }
+    a { color: inherit; text-underline-offset: 3px; }
+    :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .hidden { display: none !important; }
+    .muted { color: var(--slate); }
+    h1, h2, h3 { font-weight: 450; letter-spacing: -0.015em; margin: 0; }
+    p { margin: 0 0 12px; }
+
+
+    /* ---------- Controls ---------- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink); font: 500 15px/1 var(--font); white-space: nowrap; cursor: pointer; text-decoration: none; transition: transform .15s, opacity .15s, background .2s; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn.secondary { background: transparent; color: var(--ink); border-color: var(--hair-strong); }
+    .btn.secondary:hover { background: var(--mist); }
+    .btn.wa { background: var(--wa); border-color: var(--wa); color: #fff; }
+    .btn.small { min-height: 36px; padding: 0 14px; font-size: 14px; }
+    .btn:disabled { opacity: .45; cursor: default; transform: none; }
+    .link-btn { background: none; border: 0; padding: 4px 0 0; color: var(--bad); font: 500 13px var(--font); cursor: pointer; min-height: 0; }
     .link-btn:hover { text-decoration: underline; }
-    .btn:disabled { opacity: .5; cursor: default; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
-    .convo { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
-    .convo summary { padding: 10px 12px; cursor: pointer; display: flex; gap: 10px; flex-wrap: wrap; }
-    .convo summary span { color: var(--muted); }
-    .convo .lines { padding: 0 12px 12px; display: grid; gap: 6px; }
-    .line { padding: 7px 10px; border-radius: 8px; white-space: pre-wrap; max-width: 85%; }
-    .line.user { background: rgba(59, 130, 246, .18); justify-self: end; }
-    .line.assistant { background: var(--surface); }
-    .out { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; white-space: pre-wrap; margin-top: 8px; }
-    code, pre { background: var(--code-bg); color: var(--code-text); border-radius: 8px; padding: 12px; display: block; overflow-x: auto; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
-    .msg { margin-top: 10px; font-weight: 600; }
+    label { display: block; font-weight: 500; margin: 14px 0 6px; font-size: 14px; }
+    label small { font-weight: 400; color: var(--slate); }
+    input, textarea, select { width: 100%; padding: 11px 14px; border: 1px solid var(--hair-strong); border-radius: 14px; font: inherit; background: var(--raised); color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 22%, transparent); }
+    input:disabled, textarea:disabled, select:disabled { opacity: .65; }
+    input::placeholder, textarea::placeholder { color: var(--slate); opacity: .8; }
+    input[type="color"] { height: 46px; padding: 4px; }
+    input[type="file"] { padding: 9px; }
+    textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+    .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 18px; }
+    .msg { margin-top: 12px; font-weight: 500; }
     .msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
-    #login { max-width: 360px; margin: 80px auto; }
-    #login .top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    #login .top h2 { margin: 0; }
-    td .source { font-size: 13px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+
+    /* Theme switch: always visible, three choices */
+    .theme-switch { display: inline-flex; padding: 3px; border: 1px solid var(--hair); border-radius: 999px; background: var(--raised); }
+    .theme-switch button { border: 0; background: none; color: var(--slate); font: 500 13px var(--font); padding: 0 12px; min-height: 32px; border-radius: 999px; cursor: pointer; }
+    .theme-switch button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+
+    /* ---------- Sign-in screen ---------- */
+    #login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; position: relative; overflow: hidden; }
+    #dots { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .login-top, .login-main, .login-foot { position: relative; z-index: 1; }
+    .login-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; font-size: 17px; letter-spacing: -0.01em; text-decoration: none; }
+    .brand img { width: 28px; height: 28px; border-radius: 8px; }
+    .login-main { display: grid; justify-items: center; align-content: center; padding: 24px 16px 40px; text-align: center; }
+    .hero { font-size: clamp(38px, 6.4vw, 72px); line-height: 1.04; font-weight: 400; letter-spacing: -0.035em; margin: 0 0 18px; min-height: 2.1em; white-space: pre-line; text-wrap: balance; }
+    .hero .caret { display: inline-block; width: 2px; height: .9em; margin-left: 4px; vertical-align: -0.08em; background: linear-gradient(var(--blue), var(--green), var(--yellow), var(--coral)); animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .lede { color: var(--slate); font-size: 17px; max-width: 46ch; margin: 0 auto 32px; }
+    .login-card { width: min(420px, 100%); background: var(--raised); border-radius: 28px; padding: 26px; text-align: left; box-shadow: var(--shadow); }
+    .login-card h2 { font-size: 20px; margin-bottom: 4px; }
     .pw-wrap { position: relative; }
-    .pw-wrap input { padding-right: 76px; }
-    .pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 32px; border: 0; background: var(--btn2); color: var(--text); border-radius: 6px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
-    .muted { color: var(--muted); }
-    .banner-note { border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-weight: 500; }
+    .pw-wrap input { padding-right: 84px; }
+    .pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 34px; border: 0; background: var(--mist); color: var(--ink); border-radius: 999px; padding: 0 12px; font: 500 13px var(--font); cursor: pointer; }
+    .login-card .btn { width: 100%; }
+    .or { display: flex; align-items: center; gap: 12px; color: var(--slate); font-size: 13px; margin: 18px 0; }
+    .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--hair); }
+    .demo-note { font-size: 13px; color: var(--slate); margin: 10px 0 0; }
+    .login-card details { margin-top: 16px; font-size: 14px; }
+    .login-card summary { cursor: pointer; color: var(--slate); }
+    .login-foot { text-align: center; padding: 0 16px 22px; font-size: 13px; color: var(--slate); }
+
+    /* ---------- App shell ---------- */
+    .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px; padding: 12px 24px; background: color-mix(in srgb, var(--canvas) 86%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--hair); }
+    .topbar .spacer { flex: 1; }
+    #bizSelect { width: auto; max-width: 260px; min-height: 38px; padding: 6px 34px 6px 14px; border-radius: 999px; font-weight: 500; }
+    #bizName { font-weight: 500; }
+    .ai-pill { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--hair); color: var(--slate); white-space: nowrap; }
+    .ai-pill.on::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; vertical-align: 1px; }
+    main { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; }
+    .banner-note { border-radius: 16px; padding: 12px 16px; margin-bottom: 18px; font-weight: 450; }
     .banner-note.test { background: var(--warn-bg); color: var(--warn-text); }
     .banner-note.live { background: var(--ok-bg); color: var(--ok-text); }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--surface); }
-    .chip.review { background: rgba(99, 102, 241, .22); } .chip.approved { background: rgba(59, 130, 246, .22); } .chip.sent { background: rgba(34, 197, 94, .22); }
-    .chip.skipped { color: var(--muted); } .chip.failed { background: rgba(239, 68, 68, .22); } .chip.generating, .chip.sending { background: rgba(245, 158, 11, .22); }
-    .camp { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
-    .camp:last-child { border-bottom: 0; }
-    .email { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-    .email.sent, .email.skipped { opacity: .7; }
-    .email .to { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .email textarea { min-height: 150px; }
-    .email .err { color: var(--bad); font-size: 13px; margin-top: 6px; }
-    .hidden { display: none !important; }
-    button, .btn, nav button { min-height: 40px; } /* comfortable tap targets on touch screens */
-    table { min-width: 560px; } /* tables scroll sideways on phones instead of squashing */
+    .banner-note a { font-weight: 600; }
 
-    /* ---------- Tablets (iPad portrait and smaller laptops) ---------- */
+    .welcome { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .welcome h1 { font-size: clamp(30px, 4.4vw, 46px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 400; }
+    .welcome .hello { color: var(--slate); margin: 0 0 4px; font-size: 15px; }
+
+    nav#tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 26px; }
+    nav#tabs button { border: 1px solid var(--hair); background: var(--raised); color: var(--slate); font: 500 14px var(--font); padding: 0 16px; min-height: 40px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s; }
+    nav#tabs button:hover { color: var(--ink); }
+    nav#tabs button.active { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+    nav#tabs .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 999px; font-size: 12px; background: var(--coral); color: #fff; }
+
+    .card { background: var(--raised); border: 1px solid var(--hair); border-radius: 24px; padding: 24px; margin-bottom: 18px; }
+    .card h2 { font-size: 21px; margin-bottom: 6px; }
+    .card > p.muted:first-of-type { margin-bottom: 14px; }
+
+    /* Summary strip: what needs the owner today */
+    .summary { border-radius: 28px; background: var(--raised); padding: 6px; margin-bottom: 22px; box-shadow: var(--shadow); }
+    .summary-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .stat { padding: 18px 20px; border-left: 1px solid var(--hair); }
+    .stat:first-child { border-left: 0; }
+    .stat b { display: block; font-size: 38px; line-height: 1.1; font-weight: 400; letter-spacing: -0.03em; }
+    .stat span { color: var(--slate); font-size: 14px; }
+
+    /* Tables become cards on phones */
+    .table-wrap { overflow-x: auto; margin: 0 -8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 13px 8px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: var(--slate); font-weight: 500; font-size: 13px; }
+    td select { width: auto; padding: 6px 30px 6px 12px; border-radius: 999px; font-size: 14px; }
+    td .source { font-size: 13px; color: var(--slate); margin-top: 2px; white-space: nowrap; }
+    .nowrap { white-space: nowrap; }
+    .small-text { font-size: 13px; word-break: break-all; }
+    td .btn { white-space: nowrap; }
+    .empty { color: var(--slate); padding: 26px 8px; text-align: center; }
+
+    .convo { border: 1px solid var(--hair); border-radius: 18px; margin-bottom: 10px; overflow: hidden; }
+    .convo summary { padding: 14px 16px; cursor: pointer; display: flex; gap: 4px 12px; flex-wrap: wrap; list-style: none; }
+    .convo summary::-webkit-details-marker { display: none; }
+    .convo summary span { color: var(--slate); font-size: 14px; }
+    .convo[open] summary { border-bottom: 1px solid var(--hair); }
+    .convo .lines { padding: 14px 16px; display: grid; gap: 8px; }
+    .line { padding: 9px 14px; border-radius: 18px; white-space: pre-wrap; max-width: 80%; }
+    .line.user { background: var(--ink); color: var(--on-ink); justify-self: end; border-bottom-right-radius: 6px; }
+    .line.assistant { background: var(--mist); border-bottom-left-radius: 6px; }
+
+    .out { background: var(--mist); border-radius: 16px; padding: 14px 16px; white-space: pre-wrap; margin-top: 6px; }
+    code, pre { background: var(--mist); color: var(--ink); border-radius: 16px; padding: 14px 16px; display: block; overflow-x: auto; font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { font-size: 13px; padding: 3px 11px; border-radius: 999px; background: var(--mist); color: var(--ink); }
+    .chip.review { background: color-mix(in srgb, var(--yellow) 26%, transparent); }
+    .chip.approved { background: color-mix(in srgb, var(--blue) 20%, transparent); }
+    .chip.sent, .chip.done { background: color-mix(in srgb, var(--green) 22%, transparent); }
+    .chip.skipped { color: var(--slate); }
+    .chip.failed { background: color-mix(in srgb, var(--coral) 24%, transparent); }
+    .chip.generating, .chip.sending { background: color-mix(in srgb, var(--blue) 14%, transparent); }
+    .camp { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 16px 4px; border-bottom: 1px solid var(--hair); cursor: pointer; border-radius: 12px; }
+    .camp:hover { background: var(--mist); }
+    .camp:last-child { border-bottom: 0; }
+    .email { background: var(--raised); border: 1px solid var(--hair); border-radius: 22px; padding: 20px; margin-bottom: 12px; transition: opacity .2s; }
+    .email.approved { border-color: color-mix(in srgb, var(--blue) 45%, var(--hair)); }
+    .email.sent, .email.skipped { opacity: .7; }
+    .email .to { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .email textarea { min-height: 170px; }
+    .email .err { color: var(--bad); font-size: 13px; margin-top: 6px; }
+
+    .logins { display: grid; gap: 8px; margin: 10px 0 4px; }
+    .login-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid var(--hair); border-radius: 16px; }
+    .login-row .who b { display: block; }
+
+    /* The signature: a thin four-colour edge and a soft glow around the one panel that matters on a screen.
+       (Defined after .card so it wins; drawn with border + shadows so the glow never shows through the panel.) */
+    .lift {
+      border: 1px solid transparent;
+      background:
+        linear-gradient(var(--raised), var(--raised)) padding-box,
+        conic-gradient(from 210deg, color-mix(in srgb, var(--blue) 70%, var(--hair)), color-mix(in srgb, var(--green) 70%, var(--hair)), color-mix(in srgb, var(--yellow) 70%, var(--hair)), color-mix(in srgb, var(--coral) 70%, var(--hair)), color-mix(in srgb, var(--blue) 70%, var(--hair))) border-box;
+      box-shadow:
+        -28px 18px 70px -34px color-mix(in srgb, var(--blue) 70%, transparent),
+        28px 18px 70px -34px color-mix(in srgb, var(--coral) 60%, transparent),
+        0 34px 70px -40px color-mix(in srgb, var(--green) 65%, transparent),
+        0 -16px 60px -38px color-mix(in srgb, var(--yellow) 70%, transparent);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    /* ---------- Tablets ---------- */
     @media (max-width: 900px) {
-      main { padding: 14px; }
-      .grid2 { grid-template-columns: 1fr 1fr; }
-      nav { flex-wrap: wrap; overflow: visible; } /* show every tab, no hidden sideways scroll */
+      main { padding: 22px 18px 56px; }
+      .topbar { padding: 10px 18px; }
+      .summary-inner { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(3) { border-left: 0; }
+      .stat:nth-child(n+3) { border-top: 1px solid var(--hair); }
     }
 
     /* ---------- Phones ---------- */
     @media (max-width: 640px) {
       body { font-size: 15px; }
-      header { padding: 10px 12px; gap: 8px; }
-      header h1 { flex: 1 1 auto; }
-      header select { order: 3; flex: 1 1 100%; }
-      #aiPill { order: 4; }
-      .theme-toggle { margin-left: 0; }
-      /* All tabs visible, wrapping onto two rows, instead of a hidden sideways scroll */
-      nav { flex-wrap: wrap; padding: 6px 8px; gap: 4px; overflow: visible; }
-      nav button { padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; }
-      nav button.active { background: var(--brand); color: #fff; border-color: var(--brand); }
-      main { padding: 10px; }
-      .card { padding: 14px; border-radius: 10px; }
+      .login-top { padding: 14px 16px; }
+      .login-card { padding: 22px 18px; border-radius: 24px; }
+      .topbar { flex-wrap: wrap; padding: 10px 16px; gap: 8px 10px; }
+      .topbar .brand span { display: none; }
+      #bizSelect { order: 5; flex: 1 1 100%; max-width: none; }
+      .ai-pill { display: none; }
+      main { padding: 18px 16px 48px; }
+      .card { padding: 18px 16px; border-radius: 20px; }
       .grid2 { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
-      .stat b { font-size: 22px; }
+      .stat { padding: 14px; }
+      .stat b { font-size: 30px; }
       /* 16px stops iPhones from zooming in when you tap a field */
-      input, textarea, select, select.f, td select { font-size: 16px; }
-      .row .btn { flex: 1 1 auto; text-align: center; }
-      .line { max-width: 95%; }
-      #login { margin: 24px auto; padding: 18px; }
+      input, textarea, select, td select { font-size: 16px; }
+      .row .btn { flex: 1 1 auto; }
+      .line { max-width: 92%; }
+      /* Tables turn into stacked cards */
+      .table-wrap { margin: 0; overflow: visible; }
+      table, tbody, tr, td { display: block; width: 100%; }
+      thead { display: none; }
+      tr { border: 1px solid var(--hair); border-radius: 18px; padding: 12px 14px; margin-bottom: 10px; }
+      td { border: 0; padding: 3px 0; }
+      td.empty { border: 0; }
+      td[data-label]:not(:first-child)::before { content: attr(data-label); display: block; font-size: 12px; color: var(--slate); }
+      td:last-child .btn { width: 100%; margin-top: 8px; }
     }
   </style>
 </head>
 <body>
-  <div id="login" class="card">
-    <div class="top"><h2>Agent dashboard</h2><button type="button" class="theme-toggle" data-theme-toggle></button></div>
-    <p style="color:var(--muted)">Enter your dashboard password.</p>
-    <form id="loginForm">
-      <div class="pw-wrap">
-        <input id="pw" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" required />
-        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">👁 Show</button>
+  <!-- ================= SIGN IN ================= -->
+  <div id="login">
+    <canvas id="dots" aria-hidden="true"></canvas>
+    <div class="login-top">
+      <span class="brand"><img src="/icon.svg" alt="" />Marketing Agent</span>
+      <div class="theme-switch" data-theme-switch></div>
+    </div>
+    <div class="login-main">
+      <h1 class="hero" id="hero" aria-label="Every inquiry answered. Every customer remembered."></h1>
+      <p class="lede">Your AI assistant replies to customers day and night, writes the emails that bring old guests back, and shows you who to call today.</p>
+      <div class="login-card lift">
+        <h2>Sign in to your business</h2>
+        <p class="muted" style="font-size:14px">Use the email and password you were given.</p>
+        <form id="loginForm">
+          <label for="user">Email</label>
+          <input id="user" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="you@business.com" />
+          <label for="pw">Password</label>
+          <div class="pw-wrap">
+            <input id="pw" type="password" autocomplete="current-password" required />
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+          <div class="row"><button class="btn" id="loginBtn">Sign in</button></div>
+          <div id="loginErr" class="msg err" role="alert"></div>
+        </form>
+        <div class="or">or</div>
+        <button type="button" class="btn secondary" id="demoBtn">Try the demo</button>
+        <p class="demo-note">Opens a sample hotel's dashboard with real-looking data. Click anything: it resets itself.</p>
+        <details>
+          <summary>Forgot your password?</summary>
+          <p class="muted" style="margin:8px 0 0">Ask the person who set up your account to reset it for you. You can then change it yourself under Business setup.</p>
+        </details>
       </div>
-      <div class="row"><button class="btn" id="loginBtn">Sign in</button></div>
-      <div id="loginErr" class="msg err" role="alert"></div>
-    </form>
-    <details style="margin-top:14px">
-      <summary class="muted" style="cursor:pointer">Forgot password?</summary>
-      <p class="muted" style="margin-bottom:0">For your safety, the password can't be reset from this page. On the server, open the <b>.env</b> file, change <b>ADMIN_PASSWORD</b>, and restart the app. On a fresh install with no .env file, the password is <b>changeme</b>. Change it before going live.</p>
-    </details>
+    </div>
+    <div class="login-foot">Made for hotels, restaurants, salons and every business that lives on WhatsApp.</div>
   </div>
 
+  <!-- ================= DASHBOARD ================= -->
   <div id="app" class="hidden">
-    <header>
-      <h1>🤖 Marketing Agent</h1>
+    <header class="topbar">
+      <span class="brand"><img src="/icon.svg" alt="" /><span>Marketing Agent</span></span>
       <select id="bizSelect" aria-label="Business"></select>
-      <span id="aiPill" class="pill">AI</span>
-      <button type="button" class="theme-toggle" data-theme-toggle></button>
-      <button type="button" class="theme-toggle" id="logoutBtn" style="margin-left:0">Sign out</button>
+      <div class="spacer"></div>
+      <span id="aiPill" class="ai-pill">AI</span>
+      <div class="theme-switch" data-theme-switch></div>
+      <button type="button" class="btn secondary small" id="logoutBtn">Sign out</button>
     </header>
-    <div id="weakPw" class="banner-note test hidden" style="margin:12px 16px 0">⚠️ You're using a weak dashboard password. Set a strong ADMIN_PASSWORD in .env before putting this online.</div>
-    <nav id="tabs">
-      <button data-tab="leads" class="active">New inquiries</button>
-      <button data-tab="chats">Conversations</button>
-      <button data-tab="campaigns">Email campaigns</button>
-      <button data-tab="contacts">Contacts</button>
-      <button data-tab="grow">Quick message</button>
-      <button data-tab="setup">Business setup</button>
-      <button data-tab="install">Install</button>
-    </nav>
     <main>
+      <div id="demoBanner" class="banner-note live hidden">You're exploring a sample hotel. Approve emails, delete contacts, follow up guests: nothing is really sent and it all resets by itself. <a id="demoCustomerLink" href="/demo/lagoon-breeze-hotel" target="_blank" rel="noopener">See what the hotel's customers see</a></div>
+      <div id="weakPw" class="banner-note test hidden">You're using a weak admin password. Set a strong ADMIN_PASSWORD before putting this online.</div>
+
+      <div class="welcome">
+        <div>
+          <p class="hello" id="hello">Welcome back</p>
+          <h1 id="bizTitle">Your business</h1>
+        </div>
+        <p class="muted" id="todayLine" style="margin:0"></p>
+      </div>
+
+      <nav id="tabs" aria-label="Sections">
+        <button data-tab="leads" class="active">Inquiries<span class="count hidden" id="leadsCount"></span></button>
+        <button data-tab="campaigns">Email campaigns<span class="count hidden" id="reviewCount"></span></button>
+        <button data-tab="chats">Conversations</button>
+        <button data-tab="contacts">Contacts</button>
+        <button data-tab="grow">Quick message</button>
+        <button data-tab="setup">Business setup</button>
+        <button data-tab="install">Website &amp; WhatsApp</button>
+      </nav>
+
       <!-- LEADS -->
       <section data-panel="leads">
-        <div class="stats">
-          <div class="stat"><b id="sLeads">0</b><span>New people interested</span></div>
-          <div class="stat"><b id="sNew">0</b><span>Not contacted yet</span></div>
-          <div class="stat"><b id="sBooked">0</b><span>Booked</span></div>
-          <div class="stat"><b id="sFollow">0</b><span>Waiting for a follow-up</span></div>
+        <div class="summary lift">
+          <div class="summary-inner">
+            <div class="stat"><b id="sLeads">0</b><span>People interested</span></div>
+            <div class="stat"><b id="sNew">0</b><span>Not contacted yet</span></div>
+            <div class="stat"><b id="sFollow">0</b><span>Waiting too long</span></div>
+            <div class="stat"><b id="sBooked">0</b><span>Booked</span></div>
+          </div>
         </div>
         <div class="card">
           <h2>New inquiries</h2>
-          <p class="muted" style="margin-top:-6px">People who left their details through your website chat, WhatsApp, Instagram or a customer's invite link. Contact them quickly! ⏰ means they've waited too long.</p>
+          <p class="muted">People who left their details through your website chat, WhatsApp, Instagram or a customer's invite link. Reply fast: ⏰ means they've waited too long.</p>
           <div class="table-wrap"><table>
-            <thead><tr><th>Name &amp; where they came from</th><th>Interested in</th><th>Phone</th><th>Email</th><th>When</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Name &amp; where they came from</th><th>Interested in</th><th>Contact</th><th>When</th><th>Status</th><th></th></tr></thead>
             <tbody id="leadRows"></tbody>
           </table></div>
         </div>
-        <div class="card hidden" id="followCard">
+        <div class="card lift hidden" id="followCard">
           <h2 id="followTitle">Follow up</h2>
-          <p class="muted" style="margin-top:-6px">A friendly nudge, written for you. Edit it if you like, then send.</p>
+          <p class="muted">A friendly nudge, written for you. Edit it if you like, then send.</p>
           <label for="followSubject">Email subject</label><input id="followSubject" />
-          <label for="followText">Message</label><textarea id="followText" style="min-height:130px"></textarea>
+          <label for="followText">Message</label><textarea id="followText" style="min-height:140px"></textarea>
           <div class="row">
+            <a class="btn wa" id="followWa" target="_blank" rel="noopener">Send on WhatsApp</a>
             <button class="btn" id="followEmail">Send by email</button>
-            <a class="btn" id="followWa" target="_blank" rel="noopener" style="background:#16a34a">Open in WhatsApp</a>
             <button class="btn secondary" id="followClose">Close</button>
           </div>
           <div id="followMsg" class="msg"></div>
@@ -221,22 +358,23 @@
 
       <!-- CONVERSATIONS -->
       <section data-panel="chats" class="hidden">
-        <div class="card"><h2>Website conversations</h2><div id="convos"></div></div>
+        <div class="card"><h2>Conversations</h2><p class="muted">Every chat your assistant had on the website, WhatsApp and Instagram.</p><div id="convos"></div></div>
       </section>
 
       <!-- CAMPAIGNS -->
       <section data-panel="campaigns" class="hidden">
         <div id="mailBanner" class="banner-note"></div>
         <div id="campaignList">
+          <div class="card"><h2>Campaigns</h2><p class="muted">Open one to read, edit and approve each email. Nothing is sent until you say so.</p><div id="campaigns"></div></div>
           <div class="card">
             <h2>New email campaign</h2>
-            <p class="muted" style="margin-top:0">The AI writes a personal email for each customer using only friendly details (first name, usual service, roughly how long it's been). You review every email before anything is sent.</p>
+            <p class="muted">The AI writes a personal email for each customer using friendly details only (first name, usual order or room, roughly how long it's been).</p>
             <div class="grid2">
-              <div><label for="cGoal">Goal</label><select id="cGoal" class="f"></select><div id="cGoalHint" class="muted" style="margin-top:6px"></div></div>
+              <div><label for="cGoal">Goal</label><select id="cGoal"></select><div id="cGoalHint" class="muted" style="margin-top:6px;font-size:14px"></div></div>
               <div><label for="cName">Campaign name <small>(optional)</small></label><input id="cName" placeholder="e.g. December win-back" /></div>
               <div>
                 <label for="cInactive">Who gets it?</label>
-                <select id="cInactive" class="f">
+                <select id="cInactive">
                   <option value="0">Everyone who can be emailed</option>
                   <option value="30">Haven't visited in 30+ days</option>
                   <option value="60">Haven't visited in 60+ days</option>
@@ -247,17 +385,16 @@
               <div><label for="cTag">Only this tag <small>(optional)</small></label><input id="cTag" placeholder="e.g. regular" /></div>
             </div>
             <label for="cNotes">Notes for the AI <small>(the offer, the news, the partnership idea…)</small></label>
-            <input id="cNotes" placeholder="e.g. 15% off braids until Dec 24" />
+            <input id="cNotes" placeholder="e.g. Stay 3 nights, pay for 2 until Dec 15" />
             <div class="row"><button class="btn" id="cCreate">Write the emails</button><span id="cAudience" class="muted"></span></div>
             <div id="cMsg" class="msg err"></div>
           </div>
-          <div class="card"><h2>Campaigns</h2><div id="campaigns"></div></div>
         </div>
         <div id="campaignDetail" class="hidden">
-          <div class="row" style="margin-top:0;margin-bottom:12px"><button class="btn secondary" id="cBack">← All campaigns</button></div>
-          <div class="card">
+          <div class="row" style="margin-top:0;margin-bottom:14px"><button class="btn secondary small" id="cBack">All campaigns</button></div>
+          <div class="card lift">
             <h2 id="dTitle"></h2>
-            <div id="dCounts" class="chips"></div>
+            <div id="dCounts" class="chips" style="margin-top:8px"></div>
             <div class="row">
               <button class="btn secondary" id="dApproveAll">Approve all remaining</button>
               <button class="btn" id="dSend">Send approved emails</button>
@@ -271,67 +408,90 @@
       <!-- CONTACTS -->
       <section data-panel="contacts" class="hidden">
         <div class="card">
-          <h2>Import customers</h2>
-          <p class="muted" style="margin-top:0">Upload a CSV exported from the business's booking or POS system (Square, Vagaro, Booksy, Mindbody, Shopify, a spreadsheet…). Needs an <b>email</b> column. Name, last visit, last service, tags and consent columns are used if present. <a href="/sample-contacts.csv" download>Download a sample CSV</a></p>
-          <p class="muted">Only import people who are customers of the business or agreed to hear from it. Contacts marked "no" for consent are kept but never emailed.</p>
-          <div class="row" style="margin-top:0"><input type="file" id="csvFile" accept=".csv,text/csv" style="max-width:320px" /><button class="btn" id="csvImport">Import</button></div>
-          <div id="csvMsg" class="msg"></div>
-        </div>
-        <div class="card">
-          <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Contacts <span id="contactCount" class="muted"></span></h2><button class="btn secondary" id="csvClear">Delete all contacts</button></div>
-          <div class="table-wrap"><table>
+          <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Contacts <span id="contactCount" class="muted"></span></h2><button class="btn secondary small" id="csvClear">Delete all contacts</button></div>
+          <div class="table-wrap" style="margin-top:10px"><table>
             <thead><tr><th>Name</th><th>Email</th><th>Last visit</th><th>Last service</th><th>Tags</th><th>Can email?</th><th>Friends invited</th><th>Invite link</th></tr></thead>
             <tbody id="contactRows"></tbody>
           </table></div>
+        </div>
+        <div class="card" id="importCard">
+          <h2>Import customers</h2>
+          <p class="muted">Upload a CSV from your booking system, POS or a spreadsheet. It needs an <b>email</b> column; name, last visit, last service, tags and consent are used if present. <a href="/sample-contacts.csv" download>Download a sample CSV</a></p>
+          <p class="muted">Only import people who are your customers or agreed to hear from you. Anyone marked "no" for consent is kept but never emailed.</p>
+          <div class="row" style="margin-top:0"><input type="file" id="csvFile" accept=".csv,text/csv" style="max-width:340px" /><button class="btn" id="csvImport">Import</button></div>
+          <div id="csvMsg" class="msg"></div>
         </div>
       </section>
 
       <!-- GROW -->
       <section data-panel="grow" class="hidden">
         <div class="card">
-          <h2>Write a message to get customers back</h2>
-          <p style="color:var(--muted);margin-top:0">The AI writes a text message and an email using this business's details, offers and tone. Copy it and send it.</p>
+          <h2>Write a quick message</h2>
+          <p class="muted">The AI writes a WhatsApp/SMS message and an email in your business's tone. Copy it and send it.</p>
           <div class="grid2">
             <div>
               <label for="kind">What kind of message?</label>
-              <select id="kind" class="f">
-                <option value="review_request">⭐ Ask for a review</option>
-                <option value="win_back">💛 Win back an old customer</option>
-                <option value="promo">📣 Announce a promotion</option>
-                <option value="lead_follow_up">📞 Follow up with a new lead</option>
+              <select id="kind">
+                <option value="review_request">Ask for a review</option>
+                <option value="win_back">Win back an old customer</option>
+                <option value="promo">Announce a promotion</option>
+                <option value="lead_follow_up">Follow up with a new inquiry</option>
               </select>
             </div>
-            <div>
-              <label for="custName">Customer name <small>(optional)</small></label>
-              <input id="custName" placeholder="e.g. Adaeze" />
-            </div>
+            <div><label for="custName">Customer name <small>(optional)</small></label><input id="custName" placeholder="e.g. Adaeze" /></div>
           </div>
           <label for="notes">Notes for the AI <small>(optional)</small></label>
-          <input id="notes" placeholder="e.g. 20% off this weekend only, or: asked about teeth whitening" />
+          <input id="notes" placeholder="e.g. Free brunch for birthday guests this Sunday" />
           <div class="row"><button class="btn" id="draftBtn">Write it</button></div>
           <div id="draftOut" class="hidden">
-            <label>Text message (SMS)</label><div class="out" id="dSms"></div>
-            <div class="row"><button class="btn secondary" data-copy="dSms">Copy SMS</button></div>
+            <label>WhatsApp / text message</label><div class="out" id="dSms"></div>
+            <div class="row"><button class="btn secondary small" data-copy="dSms">Copy message</button></div>
             <label>Email subject</label><div class="out" id="dSubj"></div>
             <label>Email</label><div class="out" id="dBody"></div>
-            <div class="row"><button class="btn secondary" data-copy="dBody">Copy email</button></div>
+            <div class="row"><button class="btn secondary small" data-copy="dBody">Copy email</button></div>
           </div>
         </div>
       </section>
 
       <!-- SETUP -->
       <section data-panel="setup" class="hidden">
+        <div class="card hidden" id="loginsCard">
+          <h2>Owner logins</h2>
+          <p class="muted">Give the business owner their own sign-in. They will only ever see this business.</p>
+          <div class="logins" id="loginList"></div>
+          <form id="newLoginForm" class="grid2" autocomplete="off">
+            <div><label for="nlEmail">Owner's email</label><input id="nlEmail" type="email" required placeholder="owner@business.com" /></div>
+            <div><label for="nlName">Name <small>(optional)</small></label><input id="nlName" placeholder="e.g. Mrs Adeyemi" /></div>
+            <div><label for="nlPw">Starting password <small>(8+ characters)</small></label><input id="nlPw" required minlength="8" /></div>
+            <div style="display:flex;align-items:flex-end;gap:10px"><button type="button" class="btn secondary" id="nlGen">Suggest one</button><button class="btn">Create login</button></div>
+          </form>
+          <div id="nlMsg" class="msg"></div>
+          <div class="row hidden" id="nlShare"><a class="btn wa" id="nlShareWa" target="_blank" rel="noopener">Send login on WhatsApp</a></div>
+        </div>
+
+        <div class="card hidden" id="accountCard">
+          <h2>Your password</h2>
+          <p class="muted">Signed in as <b id="meEmail"></b>.</p>
+          <form id="pwForm" class="grid2">
+            <div><label for="pwCurrent">Current password</label><input id="pwCurrent" type="password" autocomplete="current-password" required /></div>
+            <div><label for="pwNew">New password <small>(8+ characters)</small></label><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required /></div>
+          </form>
+          <div class="row"><button class="btn" form="pwForm">Change password</button></div>
+          <div id="pwMsg" class="msg"></div>
+        </div>
+
         <div class="card">
           <h2 id="setupTitle">Business setup</h2>
-          <p style="color:var(--muted);margin-top:0">This is what makes the agent custom for each client. Everything here is what the AI knows. It won't make up anything that isn't here.</p>
-          <div class="row" style="margin-top:0"><button class="btn secondary" id="newBizBtn">+ Set up a new business</button></div>
+          <p class="muted" id="setupHint">Everything the assistant knows about the business. It won't make up anything that isn't here.</p>
+          <div class="row" style="margin-top:0" id="newBizRow"><button class="btn secondary small" id="newBizBtn">Set up a new business</button></div>
           <form id="bizForm">
             <input type="hidden" name="id" />
+            <fieldset id="bizFields" style="border:0;padding:0;margin:0">
             <div class="grid2">
               <div><label>Business name</label><input name="name" required /></div>
-              <div><label>Type <small>(salon, clinic, gym, school…)</small></label><input name="type" /></div>
+              <div><label>Type <small>(hotel, restaurant, salon, clinic…)</small></label><input name="type" /></div>
               <div><label>Tagline</label><input name="tagline" /></div>
-              <div><label>Brand color</label><input name="brandColor" type="color" value="#2563eb" style="height:40px;padding:4px" /></div>
+              <div><label>Brand colour</label><input name="brandColor" type="color" value="#2563eb" /></div>
               <div><label>Phone</label><input name="phone" /></div>
               <div><label>Email</label><input name="email" /></div>
               <div><label>Address</label><input name="address" /></div>
@@ -341,10 +501,10 @@
             </div>
             <label>Chat greeting</label><input name="greeting" />
             <label>Tone of voice</label><input name="tone" placeholder="friendly, casual, confident" />
-            <label>Main goal for the agent</label><input name="goal" placeholder="Get visitors to book an appointment" />
+            <label>Main goal for the assistant</label><input name="goal" placeholder="Get visitors to book" />
             <label>Referral offer <small>(what a customer and the friend they invite both get)</small></label><input name="referralOffer" placeholder="e.g. You and your friend both get 10% off" />
             <label>Services <small>one per line: Name | Price | Duration</small></label>
-            <textarea name="services" placeholder="Knotless braids | ₦35,000 | 5 hrs"></textarea>
+            <textarea name="services" placeholder="Standard room | ₦65,000 / night"></textarea>
             <label>FAQs <small>one per line: Question | Answer</small></label>
             <textarea name="faqs" placeholder="Do you accept transfers? | Yes, transfer, POS and cash."></textarea>
             <label>Current offers <small>one per line</small></label>
@@ -352,6 +512,7 @@
             <label>Policies <small>one per line</small></label>
             <textarea name="policies"></textarea>
             <div class="row"><button class="btn">Save business</button></div>
+            </fieldset>
             <div id="saveMsg" class="msg"></div>
           </form>
         </div>
@@ -360,20 +521,21 @@
       <!-- INSTALL -->
       <section data-panel="install" class="hidden">
         <div class="card">
-          <h2>Put the agent on the client's website</h2>
-          <p>Paste this one line before <b>&lt;/body&gt;</b> on their site (works with WordPress, Wix, Squarespace and Shopify custom-code blocks):</p>
-          <pre id="snippet"></pre>
-          <div class="row"><button class="btn secondary" data-copy="snippet">Copy code</button></div>
-          <h2 style="margin-top:24px">Demo page</h2>
-          <p>Show the owner their agent on a sample page. Great for screen recordings and sales calls:</p>
-          <div class="row" style="margin-top:0"><a class="btn" id="demoLink" target="_blank" rel="noopener">Open demo page</a></div>
-          <p style="color:var(--muted)">Note: <code style="display:inline;padding:2px 6px">localhost</code> only works on this computer. To install on a real client site, the server has to be deployed online first.</p>
+          <h2>Your customers' view</h2>
+          <p class="muted">This is what people see on your website: your page with the chat assistant in the corner. Open it and ask a question like a customer would.</p>
+          <div class="row" style="margin-top:0"><a class="btn" id="demoLink" target="_blank" rel="noopener">Open the customer page</a></div>
         </div>
         <div class="card">
-          <h2>WhatsApp & Instagram auto-replies</h2>
-          <p>The same assistant can answer customers who message the business on <b>WhatsApp</b> or <b>Instagram</b>, day and night, and add them to New inquiries.</p>
+          <h2>Put the assistant on your website</h2>
+          <p class="muted">Paste this one line before <b>&lt;/body&gt;</b> (works with WordPress, Wix, Squarespace and Shopify custom-code blocks):</p>
+          <pre id="snippet"></pre>
+          <div class="row"><button class="btn secondary small" data-copy="snippet">Copy code</button></div>
+        </div>
+        <div class="card">
+          <h2>WhatsApp &amp; Instagram auto-replies</h2>
+          <p class="muted">The same assistant can answer people who message you on WhatsApp or Instagram, day and night, and add them to your inquiries.</p>
           <div id="socialStatus" class="chips" style="margin-bottom:10px"></div>
-          <p class="muted">Setup needs a free Meta developer account, the business's WhatsApp Business number and/or Instagram professional account, and this app deployed online. Step-by-step instructions are in the README ("WhatsApp & Instagram setup").</p>
+          <p class="muted" style="margin:0">Setup needs a free Meta developer account and the business's WhatsApp Business number or Instagram professional account. Steps are in the README ("WhatsApp &amp; Instagram setup").</p>
         </div>
       </section>
     </main>
@@ -382,9 +544,26 @@
   <script>
     let bizId = '';
     let STATUS = null;
+    let ME = null;
+    let LEADS = [];
+    let CAMPAIGNS = [];
     const $ = (s) => document.querySelector(s);
     const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
+    // "5 min ago", "2 hours ago", "Yesterday", "3 days ago", then the date.
+    const ago = (iso) => {
+      const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+      if (!(m >= 0)) return fmt(iso);
+      if (m < 1) return 'Just now';
+      if (m < 60) return `${m} min ago`;
+      const h = Math.round(m / 60);
+      if (h < 24) return `${h} ${h === 1 ? 'hour' : 'hours'} ago`;
+      const d = Math.round(h / 24);
+      if (d === 1) return 'Yesterday';
+      if (d < 7) return `${d} days ago`;
+      return new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'short' });
+    };
     const fmt = (iso) => iso ? new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '';
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     async function api(path, opts = {}) {
       const res = await fetch(`/api/admin${path}`, {
@@ -402,35 +581,88 @@
       $('#app').classList.add('hidden');
       $('#login').classList.remove('hidden');
       $('#loginErr').textContent = message;
+      startDots();
     }
 
-    // ---------- Dark / light mode ----------
-    // Cycles System → Dark → Light. "System" follows the phone/computer setting.
-    const THEMES = { system: '🖥️ System', dark: '🌙 Dark', light: '☀️ Light' };
-    const NEXT_THEME = { system: 'dark', dark: 'light', light: 'system' };
-    function paintToggles() {
-      const theme = THEMES[document.documentElement.dataset.theme] ? document.documentElement.dataset.theme : 'system';
-      document.querySelectorAll('[data-theme-toggle]').forEach((b) => {
-        b.textContent = THEMES[theme];
-        b.title = `Theme: ${theme}. Click to switch to ${NEXT_THEME[theme]}.`;
-        b.setAttribute('aria-label', b.title);
+    // ---------- Theme: System / Dark / Light ----------
+    const THEMES = [['system', 'System'], ['dark', 'Dark'], ['light', 'Light']];
+    function paintThemeSwitches() {
+      const current = document.documentElement.dataset.theme || 'system';
+      document.querySelectorAll('[data-theme-switch]').forEach((box) => {
+        if (!box.children.length) {
+          box.setAttribute('role', 'group');
+          box.setAttribute('aria-label', 'Colour theme');
+          for (const [key, label] of THEMES) {
+            const b = el('button', label);
+            b.type = 'button';
+            b.dataset.themeSet = key;
+            b.addEventListener('click', () => {
+              document.documentElement.dataset.theme = key;
+              try { localStorage.setItem('ma-theme', key); } catch {}
+              paintThemeSwitches();
+            });
+            box.append(b);
+          }
+        }
+        box.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === current)));
       });
     }
-    document.querySelectorAll('[data-theme-toggle]').forEach((b) => b.addEventListener('click', () => {
-      const next = NEXT_THEME[document.documentElement.dataset.theme] || 'dark';
-      document.documentElement.dataset.theme = next;
-      try { localStorage.setItem('ma-theme', next); } catch {}
-      paintToggles();
-    }));
-    paintToggles();
+    paintThemeSwitches();
+
+    // ---------- Sign-in screen: drifting dots + headline that writes itself once ----------
+    let dotsRunning = false;
+    function startDots() {
+      const canvas = $('#dots');
+      if (dotsRunning || !canvas.getContext) return;
+      dotsRunning = true;
+      const ctx = canvas.getContext('2d');
+      let w = 0, h = 0, dots = [];
+      const resize = () => {
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        w = canvas.clientWidth; h = canvas.clientHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const n = Math.round(Math.min(110, (w * h) / 12000));
+        dots = Array.from({ length: n }, () => ({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.3 + 0.5, vy: -(Math.random() * 0.25 + 0.06), vx: (Math.random() - 0.5) * 0.08 }));
+      };
+      resize();
+      addEventListener('resize', resize);
+      const draw = () => {
+        if ($('#login').classList.contains('hidden')) { dotsRunning = false; return; }
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--dot');
+        for (const d of dots) {
+          if (!reduceMotion) { d.y += d.vy; d.x += d.vx; if (d.y < -4) { d.y = h + 4; d.x = Math.random() * w; } }
+          ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+        }
+        if (reduceMotion) { dotsRunning = false; return; }
+        requestAnimationFrame(draw);
+      };
+      draw();
+    }
+
+    function typeHero() {
+      const hero = $('#hero');
+      const text = hero.getAttribute('aria-label').replace('. ', '.\n'); // one sentence per line
+      const caret = '<span class="caret" aria-hidden="true"></span>';
+      if (reduceMotion) { hero.textContent = text; return; }
+      let i = 0;
+      const tick = () => {
+        i++;
+        hero.innerHTML = '';
+        hero.append(document.createTextNode(text.slice(0, i)));
+        hero.insertAdjacentHTML('beforeend', caret);
+        if (i < text.length) setTimeout(tick, text[i - 1] === '.' ? 260 : 34);
+      };
+      setTimeout(tick, 250);
+    }
 
     // ---------- Login ----------
-    // Show / hide the password while typing.
     $('#pwToggle').addEventListener('click', () => {
       const pw = $('#pw');
       const show = pw.type === 'password';
       pw.type = show ? 'text' : 'password';
-      $('#pwToggle').textContent = show ? '🙈 Hide' : '👁 Show';
+      $('#pwToggle').textContent = show ? 'Hide' : 'Show';
       $('#pwToggle').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
       $('#pwToggle').setAttribute('aria-pressed', String(show));
       pw.focus();
@@ -441,7 +673,7 @@
       const btn = $('#loginBtn');
       btn.disabled = true;
       try {
-        await api('/login', { method: 'POST', body: JSON.stringify({ password: $('#pw').value }) });
+        await api('/login', { method: 'POST', body: JSON.stringify({ username: $('#user').value.trim(), password: $('#pw').value }) });
         $('#pw').value = '';
         $('#loginErr').textContent = '';
         await start();
@@ -451,52 +683,90 @@
       btn.disabled = false;
     });
 
+    $('#demoBtn').addEventListener('click', async () => {
+      const btn = $('#demoBtn');
+      btn.disabled = true; btn.textContent = 'Opening the demo…';
+      try {
+        await api('/demo-login', { method: 'POST', body: '{}' });
+        try { localStorage.removeItem('ma-biz'); } catch {}
+        await start();
+      } catch (err) { $('#loginErr').textContent = err.message; }
+      btn.disabled = false; btn.textContent = 'Try the demo';
+    });
+
     $('#logoutBtn').addEventListener('click', async () => {
       try { await api('/logout', { method: 'POST' }); } catch {}
+      bizId = '';
       showLogin('Signed out.');
     });
 
     async function start() {
       try {
-        const status = await api('/status');
+        const [me, status] = await Promise.all([api('/me'), api('/status')]);
+        ME = me; STATUS = status;
         $('#weakPw').classList.toggle('hidden', !status.weakPassword);
         $('#login').classList.add('hidden');
         $('#app').classList.remove('hidden');
         const pill = $('#aiPill');
-        pill.textContent = status.ai.enabled ? `AI on · ${status.ai.model}` : 'Offline mode (no AI key)';
+        pill.textContent = status.ai.enabled ? 'AI assistant on' : 'Offline mode';
+        pill.title = status.ai.enabled ? status.ai.model : 'No AI key: simple built-in replies';
         pill.classList.toggle('on', status.ai.enabled);
-        STATUS = status;
+        applyRole();
         setupCampaignForm();
         await loadBusinesses();
-        // e.g. coming back from the invite preview lands on /admin#leads
         const tab = location.hash.slice(1);
         if (tab) document.querySelector(`#tabs button[data-tab="${tab.replace(/[^a-z]/g, '')}"]`)?.click();
       } catch {
-        // Not signed in yet: stay on the login screen.
+        // Not signed in yet: stay on the sign-in screen.
+        showLogin($('#loginErr').textContent);
       }
+    }
+
+    // What each kind of user sees: the admin manages every business; an owner
+    // only theirs; the demo visitor a sample hotel that can't be renamed.
+    function applyRole() {
+      const admin = ME.role === 'admin', demo = ME.role === 'demo', owner = ME.role === 'owner';
+      $('#bizSelect').classList.toggle('hidden', !admin);
+      $('#demoBanner').classList.toggle('hidden', !demo);
+      $('#loginsCard').classList.toggle('hidden', !admin);
+      $('#accountCard').classList.toggle('hidden', !owner);
+      $('#newBizRow').classList.toggle('hidden', !admin);
+      $('#importCard').classList.toggle('hidden', demo);
+      $('#bizFields').disabled = demo;
+      $('#setupHint').textContent = demo
+        ? 'This is what the assistant knows about the sample hotel. In your own account you edit it here, and the assistant updates instantly.'
+        : 'Everything the assistant knows about the business. It won\'t make up anything that isn\'t here.';
+      if (owner) $('#meEmail').textContent = ME.email;
+      const h = new Date().getHours();
+      const part = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+      $('#hello').textContent = ME.name && owner ? `${part}, ${ME.name.split(' ')[0]}` : part;
     }
 
     async function loadBusinesses(selectId) {
       const list = await api('/businesses');
       const sel = $('#bizSelect');
-      sel.replaceChildren(...list.map((b) => { const o = el('option', b.name); o.value = b.id; return o; }));
+      sel.replaceChildren(...list.map((b) => { const o = el('option', b.demo ? `${b.name} (demo)` : b.name); o.value = b.id; return o; }));
       let saved = '';
       try { saved = localStorage.getItem('ma-biz') || ''; } catch {}
-      bizId = selectId || bizId || (list.some((b) => b.id === saved) ? saved : '') || list[0]?.id || '';
+      const has = (id) => list.some((b) => b.id === id);
+      bizId = [selectId, bizId, saved].find((id) => id && has(id)) || list[0]?.id || '';
       sel.value = bizId;
+      $('#bizTitle').textContent = list.find((b) => b.id === bizId)?.name || 'No business yet';
       await refresh();
     }
 
     $('#bizSelect').addEventListener('change', (e) => {
       bizId = e.target.value;
       try { localStorage.setItem('ma-biz', bizId); } catch {}
+      $('#bizTitle').textContent = e.target.selectedOptions[0]?.textContent.replace(/ \(demo\)$/, '') || '';
       refresh();
     });
 
     async function refresh() {
       if (!bizId) return;
-      await Promise.all([loadLeads(), loadConvos(), loadSetup(), loadContacts(), loadCampaigns()]);
+      await Promise.all([loadLeads(), loadConvos(), loadSetup(), loadContacts(), loadCampaigns(), loadLogins()]);
       closeCampaign();
+      paintToday();
       const origin = location.origin;
       $('#snippet').textContent = `<script src="${origin}/widget.js" data-business="${bizId}" defer><\/script>`;
       $('#demoLink').href = `/demo/${bizId}`;
@@ -511,6 +781,19 @@
       }
     }
 
+    // One plain sentence about what needs doing today, plus counts on the tabs.
+    function paintToday() {
+      const fresh = LEADS.filter((l) => l.status === 'new').length;
+      const toReview = CAMPAIGNS.reduce((n, c) => n + (c.status === 'review' ? c.counts.review || 0 : 0), 0);
+      const parts = [];
+      if (fresh) parts.push(`${fresh} ${fresh === 1 ? 'person is' : 'people are'} waiting for a reply`);
+      if (toReview) parts.push(`${toReview} ${toReview === 1 ? 'email is' : 'emails are'} ready for your review`);
+      $('#todayLine').textContent = parts.length ? `${parts.join(' and ')}.` : 'All caught up. Nice work.';
+      const setCount = (id, n) => { const c = $(id); c.textContent = n; c.classList.toggle('hidden', !n); };
+      setCount('#leadsCount', fresh);
+      setCount('#reviewCount', toReview);
+    }
+
     // ---------- Tabs ----------
     $('#tabs').addEventListener('click', (e) => {
       const tab = e.target.closest('button')?.dataset.tab;
@@ -521,8 +804,10 @@
     });
 
     // ---------- Leads ----------
+    const cell = (text, label) => { const td = el('td', text); if (label) td.dataset.label = label; return td; };
     async function loadLeads() {
       const leads = await api(`/businesses/${bizId}/leads`);
+      LEADS = leads;
       $('#sLeads').textContent = leads.length;
       $('#sNew').textContent = leads.filter((l) => l.status === 'new').length;
       $('#sBooked').textContent = leads.filter((l) => l.status === 'booked').length;
@@ -530,20 +815,28 @@
       const rows = $('#leadRows');
       if (!leads.length) {
         const td = el('td', 'No inquiries yet. They appear here when someone leaves their details in your website chat, WhatsApp, Instagram or a customer\'s invite link.', 'empty');
-        td.colSpan = 7; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
+        td.colSpan = 6; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
       }
       rows.replaceChildren(...leads.map((l) => {
         const tr = el('tr');
         const who = el('td');
         who.append(el('b', l.name || '—'), el('div', SOURCE_LABEL(l), 'source'));
-        tr.append(who, el('td', l.interest || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', fmt(l.createdAt)));
+        const contact = cell(null, 'Contact');
+        if (l.phone) contact.append(el('div', l.phone, 'nowrap'));
+        if (l.email) contact.append(el('div', l.email, 'muted small-text'));
+        if (!l.phone && !l.email) contact.textContent = '—';
+        const when = cell(ago(l.createdAt), 'When');
+        when.title = fmt(l.createdAt);
+        when.classList.add('nowrap');
+        tr.append(who, cell(l.interest || '—', 'Interested in'), contact, when);
         const sel = document.createElement('select');
-        for (const s of ['new', 'contacted', 'booked', 'lost']) { const o = el('option', s); o.value = s; sel.append(o); }
+        sel.setAttribute('aria-label', `Status for ${l.name || 'this inquiry'}`);
+        for (const [s, label] of [['new', 'New'], ['contacted', 'Contacted'], ['booked', 'Booked'], ['lost', 'Lost']]) { const o = el('option', label); o.value = s; sel.append(o); }
         sel.value = l.status;
-        sel.addEventListener('change', async () => { await api(`/leads/${l.id}`, { method: 'PATCH', body: JSON.stringify({ status: sel.value }) }); loadLeads(); });
-        const td = el('td'); td.append(sel); tr.append(td);
+        sel.addEventListener('change', async () => { await api(`/leads/${l.id}`, { method: 'PATCH', body: JSON.stringify({ status: sel.value }) }); await loadLeads(); paintToday(); });
+        const td = cell(null, 'Status'); td.append(sel); tr.append(td);
         const waiting = isWaiting(l);
-        const fu = el('button', waiting ? '⏰ Follow up' : 'Follow up', 'btn secondary');
+        const fu = el('button', waiting ? '⏰ Follow up' : 'Follow up', waiting ? 'btn small' : 'btn secondary small');
         fu.addEventListener('click', () => openFollowUp(l));
         const td2 = el('td'); td2.append(fu); tr.append(td2);
         return tr;
@@ -574,7 +867,7 @@
       $('#followMsg').textContent = '';
       $('#followEmail').disabled = true;
       $('#followWa').classList.add('hidden');
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      card.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       try {
         const d = await api(`/leads/${l.id}/follow-up/draft`, { method: 'POST', body: '{}' });
         if (followLead !== l) return;
@@ -603,8 +896,8 @@
       try {
         await api(`/leads/${followLead.id}/follow-up/send`, { method: 'POST', body: JSON.stringify({ channel: 'email', subject: $('#followSubject').value, text: $('#followText').value }) });
         msg.className = 'msg ok';
-        msg.textContent = STATUS.email.live ? 'Sent ✓ Marked as contacted.' : 'Saved in test mode ✓ (nothing was really emailed). Marked as contacted.';
-        loadLeads();
+        msg.textContent = ME.role === 'demo' ? 'Sent ✓ (demo: nobody was really emailed). Marked as contacted.' : STATUS.email.live ? 'Sent ✓ Marked as contacted.' : 'Saved in test mode ✓ (nothing was really emailed). Marked as contacted.';
+        await loadLeads(); paintToday();
       } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
     });
 
@@ -617,7 +910,7 @@
         await api(`/leads/${followLead.id}/follow-up/send`, { method: 'POST', body: JSON.stringify({ channel: 'whatsapp' }) });
         $('#followMsg').className = 'msg ok';
         $('#followMsg').textContent = 'WhatsApp opened ✓ Marked as contacted.';
-        loadLeads();
+        await loadLeads(); paintToday();
       } catch {}
     });
 
@@ -625,13 +918,13 @@
     async function loadConvos() {
       const convos = await api(`/businesses/${bizId}/conversations`);
       const box = $('#convos');
-      if (!convos.length) { box.replaceChildren(el('div', 'No conversations yet.', 'empty')); return; }
+      if (!convos.length) { box.replaceChildren(el('div', 'No conversations yet. They appear when someone chats with your assistant.', 'empty')); return; }
       box.replaceChildren(...convos.map((c) => {
         const d = el('details', null, 'convo');
         const s = el('summary');
         const first = c.messages.find((m) => m.role === 'user')?.content || '';
         const ch = { whatsapp: '🟢 WhatsApp', instagram: '📸 Instagram' }[c.channel] || '💬 Website';
-        s.append(el('b', first.slice(0, 70) || '(empty)'), el('span', `${ch} · ${c.messages.length} messages · ${fmt(c.updatedAt)}`));
+        s.append(el('b', first.slice(0, 80) || '(empty)'), el('span', `${ch}, ${c.messages.length} messages, ${fmt(c.updatedAt)}`));
         const lines = el('div', null, 'lines');
         for (const m of c.messages) lines.append(el('div', m.content, `line ${m.role}`));
         d.append(s, lines);
@@ -639,7 +932,7 @@
       }));
     }
 
-    // ---------- Grow & retain ----------
+    // ---------- Quick message ----------
     $('#draftBtn').addEventListener('click', async () => {
       const btn = $('#draftBtn');
       btn.disabled = true; btn.textContent = 'Writing…';
@@ -673,7 +966,7 @@
     }
 
     function fillForm(b) {
-      $('#setupTitle').textContent = b.id ? `Business setup: ${b.name}` : 'Set up a new business';
+      $('#setupTitle').textContent = b.id ? b.name : 'Set up a new business';
       for (const k of ['id', 'name', 'type', 'tagline', 'phone', 'email', 'address', 'hours', 'bookingLink', 'reviewLink', 'greeting', 'tone', 'goal', 'referralOffer']) form.elements[k].value = b[k] || '';
       form.elements.brandColor.value = b.brandColor || '#2563eb';
       form.elements.services.value = joinLines(b.services, (s) => [s.name, s.price, s.duration].filter(Boolean).join(' | '));
@@ -683,7 +976,7 @@
       $('#saveMsg').textContent = '';
     }
 
-    $('#newBizBtn').addEventListener('click', () => fillForm({}));
+    $('#newBizBtn').addEventListener('click', () => { fillForm({}); $('#loginsCard').classList.add('hidden'); });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -700,8 +993,79 @@
       const msg = $('#saveMsg');
       try {
         const saved = await api('/businesses', { method: 'POST', body: JSON.stringify(body) });
-        msg.className = 'msg ok'; msg.textContent = `Saved ✓ The agent now uses these details.`;
+        msg.className = 'msg ok'; msg.textContent = 'Saved ✓ The assistant now uses these details.';
+        if (ME.role === 'admin') $('#loginsCard').classList.remove('hidden');
         await loadBusinesses(saved.id);
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+    });
+
+    // ---------- Owner logins (admin only) ----------
+    async function loadLogins() {
+      if (ME?.role !== 'admin') return;
+      const list = await api(`/businesses/${bizId}/logins`).catch(() => []);
+      const box = $('#loginList');
+      const isDemo = bizId === 'lagoon-breeze-hotel';
+      $('#newLoginForm').classList.toggle('hidden', isDemo);
+      if (isDemo) { box.replaceChildren(el('div', 'The sample hotel has no owner login: prospects open it with "Try the demo" on the sign-in page.', 'muted')); return; }
+      if (!list.length) { box.replaceChildren(el('div', 'No owner login yet. Create one below.', 'muted')); return; }
+      box.replaceChildren(...list.map((u) => {
+        const row = el('div', null, 'login-row');
+        const who = el('div', null, 'who');
+        who.append(el('b', u.name || u.email), el('span', `${u.email}${u.lastLoginAt ? `, last signed in ${fmt(u.lastLoginAt)}` : ', never signed in'}`, 'muted'));
+        const actions = el('div', null, 'chips');
+        const reset = el('button', 'Reset password', 'btn secondary small');
+        reset.addEventListener('click', async () => {
+          const pw = prompt(`New password for ${u.email} (8+ characters):`, makePassword());
+          if (!pw) return;
+          try { await api(`/logins/${u.id}/password`, { method: 'POST', body: JSON.stringify({ password: pw }) }); shareLogin(u.email, pw, `Password reset ✓ Send ${u.email} their new password.`); }
+          catch (err) { alert(err.message); }
+        });
+        const remove = el('button', 'Remove', 'btn secondary small');
+        remove.addEventListener('click', async () => {
+          if (!confirm(`Remove the login for ${u.email}? They will be signed out and can't sign in again.`)) return;
+          try { await api(`/logins/${u.id}`, { method: 'DELETE' }); loadLogins(); } catch (err) { alert(err.message); }
+        });
+        actions.append(reset, remove);
+        row.append(who, actions);
+        return row;
+      }));
+    }
+
+    function makePassword() {
+      const words = ['palm', 'lagoon', 'jollof', 'sunset', 'harbour', 'mango', 'breeze', 'coral', 'island', 'market'];
+      const a = new Uint32Array(3); crypto.getRandomValues(a);
+      return `${words[a[0] % words.length]}-${words[a[1] % words.length]}-${100 + (a[2] % 900)}`;
+    }
+    $('#nlGen').addEventListener('click', () => { $('#nlPw').value = makePassword(); });
+
+    function shareLogin(email, password, text) {
+      const msg = $('#nlMsg');
+      msg.className = 'msg ok'; msg.textContent = text;
+      const biz = $('#bizTitle').textContent;
+      const wa = `Hello! Your ${biz} dashboard is ready.\n\nSign in: ${location.origin}/admin\nEmail: ${email}\nPassword: ${password}\n\nYou can change the password after signing in (Business setup).`;
+      $('#nlShareWa').href = `https://wa.me/?text=${encodeURIComponent(wa)}`;
+      $('#nlShare').classList.remove('hidden');
+    }
+
+    $('#newLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('#nlEmail').value.trim(), password = $('#nlPw').value;
+      try {
+        await api(`/businesses/${bizId}/logins`, { method: 'POST', body: JSON.stringify({ email, name: $('#nlName').value, password }) });
+        $('#nlEmail').value = ''; $('#nlName').value = ''; $('#nlPw').value = '';
+        shareLogin(email, password, `Login created ✓ ${email} can now sign in and will only see this business.`);
+        loadLogins();
+      } catch (err) { $('#nlMsg').className = 'msg err'; $('#nlMsg').textContent = err.message; $('#nlShare').classList.add('hidden'); }
+    });
+
+    // ---------- Owner: change own password ----------
+    $('#pwForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = $('#pwMsg');
+      try {
+        await api('/me/password', { method: 'POST', body: JSON.stringify({ current: $('#pwCurrent').value, password: $('#pwNew').value }) });
+        $('#pwCurrent').value = ''; $('#pwNew').value = '';
+        msg.className = 'msg ok'; msg.textContent = 'Password changed ✓ Other devices were signed out.';
       } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
     });
 
@@ -711,17 +1075,19 @@
       $('#contactCount').textContent = `(${contacts.length})`;
       const rows = $('#contactRows');
       if (!contacts.length) {
-        const td = el('td', 'No contacts yet. Import a CSV above, or try the sample file.', 'empty');
+        const td = el('td', 'No contacts yet. Import a CSV below, or try the sample file.', 'empty');
         td.colSpan = 8; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
       }
       rows.replaceChildren(...contacts.map((c) => {
         const tr = el('tr');
         const ok = c.unsubscribed ? 'Unsubscribed' : c.consent ? 'Yes' : 'No consent';
-        // Name cell also holds the delete link, so it's visible on phones without scrolling sideways.
+        // Name cell also holds the delete link, so it's visible on phones.
         const fullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
-        const nameTd = el('td', fullName || '—');
+        const nameTd = el('td');
+        nameTd.append(el('b', fullName || '—'));
         const del = el('button', 'Delete', 'link-btn');
         del.type = 'button';
+        del.setAttribute('aria-label', `Delete ${fullName || c.email}`);
         del.addEventListener('click', async () => {
           if (!confirm(`Delete ${fullName || c.email}? This cannot be undone.`)) return;
           try {
@@ -732,10 +1098,10 @@
         });
         nameTd.append(el('br'), del);
         tr.append(
-          nameTd, el('td', c.email),
-          el('td', c.lastVisit || '—'), el('td', c.lastService || '—'), el('td', (c.tags || []).join(', ') || '—'), el('td', ok), el('td', String(c.referrals || 0))
+          nameTd, cell(c.email, 'Email'),
+          cell(c.lastVisit || '—', 'Last visit'), cell(c.lastService || '—', 'Last service'), cell((c.tags || []).join(', ') || '—', 'Tags'), cell(ok, 'Can email?'), cell(String(c.referrals || 0), 'Friends invited')
         );
-        const linkTd = el('td');
+        const linkTd = cell(null, 'Invite link');
         if (c.referralCode) {
           const a = el('a', c.referralCode);
           a.href = `/r/${c.referralCode}`;
@@ -774,19 +1140,20 @@
     function setupCampaignForm() {
       const HINTS = {
         win_back: 'Brings back customers who stopped coming. Tip: choose "Haven\'t visited in 90+ days".',
-        referral: 'Gets NEW customers: each happy customer gets a personal invite link (+ WhatsApp share button) to send friends. Tip: use the tag "regular".',
+        referral: 'Gets NEW customers: each happy customer gets a personal invite link (with a WhatsApp share button) to send friends. Tip: use the tag "regular".',
         review_request: 'More good reviews help new people find and trust the business online.',
         promo: 'Tell customers about an offer or news. Put the details in "Notes for the AI".',
         thank_you: 'A simple thank-you to loyal customers. Builds loyalty.',
         partnership: 'Pitch a nearby business to recommend each other. Brings new customers from their clients.',
       };
       $('#cGoal').onchange = () => ($('#cGoalHint').textContent = HINTS[$('#cGoal').value] || '');
-      setTimeout(() => $('#cGoal').onchange(), 0);
       $('#cGoal').replaceChildren(...Object.entries(STATUS.campaignGoals).map(([k, label]) => { const o = el('option', label); o.value = k; return o; }));
+      $('#cGoal').onchange();
       const banner = $('#mailBanner');
-      if (STATUS.email.live) { banner.className = 'banner-note live'; banner.textContent = `Live sending is ON (${STATUS.email.provider}). Approved emails go to real inboxes.`; }
-      else if (STATUS.email.provider === 'log') { banner.className = 'banner-note test'; banner.textContent = 'Test mode: approved emails are saved on this computer (data/outbox.json). Nobody gets emailed. Set EMAIL_PROVIDER in .env to send for real.'; }
-      else { banner.className = 'banner-note test'; banner.textContent = `Email provider "${STATUS.email.provider}" is not configured. Add EMAIL_API_KEY and EMAIL_FROM_ADDRESS to .env.`; }
+      if (ME.role === 'demo') { banner.className = 'banner-note live'; banner.textContent = 'Demo: approve and "send" as much as you like. Nobody is really emailed.'; }
+      else if (STATUS.email.live) { banner.className = 'banner-note live'; banner.textContent = `Live sending is on (${STATUS.email.provider}). Approved emails go to real inboxes.`; }
+      else if (STATUS.email.provider === 'log') { banner.className = 'banner-note test'; banner.textContent = 'Test mode: approved emails are saved, not sent. Nobody gets emailed until real sending is switched on.'; }
+      else { banner.className = 'banner-note test'; banner.textContent = `Email provider "${STATUS.email.provider}" is not configured. Add EMAIL_API_KEY and EMAIL_FROM_ADDRESS.`; }
     }
 
     const audienceQuery = () => new URLSearchParams({ inactiveDays: $('#cInactive').value, tag: $('#cTag').value.trim() });
@@ -824,16 +1191,20 @@
     async function loadCampaigns() {
       updateAudience();
       const list = await api(`/businesses/${bizId}/campaigns`);
+      CAMPAIGNS = list;
       const box = $('#campaigns');
-      if (!list.length) { box.replaceChildren(el('div', 'No campaigns yet. Import contacts, then create one above.', 'empty')); return; }
+      if (!list.length) { box.replaceChildren(el('div', 'No campaigns yet. Import contacts, then create one below.', 'empty')); return; }
       box.replaceChildren(...list.map((c) => {
         const row = el('div', null, 'camp');
+        row.tabIndex = 0;
+        row.setAttribute('role', 'button');
         const left = el('div');
-        left.append(el('b', c.name), el('div', `${fmt(c.createdAt)} · ${c.total} recipients`, 'muted'));
+        left.append(el('b', c.name), el('div', `${fmt(c.createdAt)}, ${c.total} ${c.total === 1 ? 'person' : 'people'}`, 'muted'));
         const right = el('div', null, 'chips');
         right.append(el('span', STATUS_LABELS[c.status] || c.status, `chip ${c.status}`), countChips(c.counts));
         row.append(left, right);
         row.addEventListener('click', () => openCampaign(c.id));
+        row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCampaign(c.id); } });
         return row;
       }));
     }
@@ -842,7 +1213,7 @@
       openCampaignId = null; clearTimeout(pollTimer);
       $('#campaignDetail').classList.add('hidden'); $('#campaignList').classList.remove('hidden');
     }
-    $('#cBack').addEventListener('click', () => { closeCampaign(); loadCampaigns(); });
+    $('#cBack').addEventListener('click', async () => { closeCampaign(); await loadCampaigns(); paintToday(); });
 
     async function openCampaign(id) {
       openCampaignId = id;
@@ -876,6 +1247,7 @@
         to.append(el('b', m.toName || m.to), el('span', m.to, 'muted'), el('span', m.status, `chip ${m.status}`));
         const subj = document.createElement('input'); subj.value = m.subject; subj.setAttribute('aria-label', 'Subject');
         const body = document.createElement('textarea'); body.value = m.body; body.setAttribute('aria-label', 'Email text');
+        body.style.marginTop = '8px';
         const locked = m.status === 'sent' || c.status !== 'review';
         subj.disabled = body.disabled = locked;
         const actions = el('div', null, 'row');
@@ -893,13 +1265,12 @@
         if (m.status !== 'approved') actions.append(act('Approve', 'approved', 'btn'));
         if (m.status !== 'skipped') actions.append(act("Don't send", 'skipped'));
         if (m.referralCode) {
-          const view = el('a', '👀 Preview invite page', 'btn secondary');
+          const view = el('a', 'Preview invite page', 'btn secondary');
           view.href = `/r/${m.referralCode}?preview=1`; // same tab; the page shows a "Back to dashboard" button
           actions.append(view);
         }
         actions.append(act('Save edits', undefined));
-        card.append(to, subj, el('div', null), body, actions);
-        card.children[2].style.height = '8px';
+        card.append(to, subj, body, actions);
         if (m.error) card.append(el('div', m.error, 'err'));
         return card;
       }));
@@ -911,17 +1282,19 @@
     });
 
     $('#dSend').addEventListener('click', async () => {
-      const live = STATUS.email.live;
+      const live = STATUS.email.live && ME.role !== 'demo';
       if (live && !confirm('Send all approved emails to real inboxes now?')) return;
       const msg = $('#dMsg');
       try {
         const r = await api(`/campaigns/${openCampaignId}/send`, { method: 'POST' });
         msg.className = 'msg ok';
-        msg.textContent = `${live ? 'Sending' : 'Test-sending'} ${r.queued} emails…${r.limitedBy ? ` (daily limit of ${r.limitedBy} reached; the rest can go tomorrow)` : ''}`;
+        msg.textContent = `${live ? 'Sending' : ME.role === 'demo' ? 'Sending (demo)' : 'Test-sending'} ${r.queued} emails…${r.limitedBy ? ` (daily limit of ${r.limitedBy} reached; the rest can go tomorrow)` : ''}`;
         renderCampaign(true);
       } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
     });
 
+    typeHero();
+    startDots();
     start(); // if the session cookie is still valid, go straight to the dashboard
 
     // Register the service worker so phones offer "Add to Home Screen" / "Install app".

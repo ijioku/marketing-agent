@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Demo site</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sample business website</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&display=swap" />
   <script>
     (function () {
       let theme = 'system';
@@ -12,91 +16,182 @@
     })();
   </script>
   <style>
-    :root, :root[data-theme="dark"] { color-scheme: dark; --brand: #111827; --bg: #0b0f17; --card: #131a24; --text: #e6e9ef; --muted: #8b95a7; --line: #263042; --banner-bg: rgba(245,158,11,.14); --banner-text: #fcd34d; }
-    :root[data-theme="light"] { color-scheme: light; --bg: #fafafa; --card: #ffffff; --text: #111827; --muted: #6b7280; --line: #e5e7eb; --banner-bg: #fef3c7; --banner-text: #78350f; }
-    @media (prefers-color-scheme: light) { :root[data-theme="system"] { color-scheme: light; --bg: #fafafa; --card: #ffffff; --text: #111827; --muted: #6b7280; --line: #e5e7eb; --banner-bg: #fef3c7; --banner-text: #78350f; } }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); background: var(--bg); }
-    .banner { background: var(--banner-bg); color: var(--banner-text); font-size: 13px; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
-    .banner button { background: transparent; color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
-    header { background: var(--brand); color: #fff; padding: 64px 16px 72px; text-align: center; }
-    header h1 { margin: 0 0 10px; font-size: clamp(30px, 6vw, 48px); }
-    header p { margin: 0 auto; max-width: 560px; opacity: .9; font-size: 18px; }
-    .cta { display: inline-block; margin-top: 26px; background: #fff; color: var(--brand); padding: 12px 22px; border-radius: 999px; font-weight: 700; text-decoration: none; }
-    main { max-width: 960px; margin: -36px auto 60px; padding: 0 16px; display: grid; gap: 20px; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.06); }
-    .card h2 { margin: 0 0 14px; font-size: 20px; }
-    .services { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-    .svc { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
-    .svc b { display: block; margin-bottom: 4px; }
-    .svc span { color: var(--muted); font-size: 14px; }
-    .info { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; color: var(--muted); }
-    .info div b { display: block; color: var(--text); margin-bottom: 2px; }
-    @media (max-width: 640px) {
-      header { padding: 44px 16px 56px; }
-      header p { font-size: 16px; }
-      .card { padding: 16px; }
+    :root {
+      color-scheme: light;
+      --brand: #0f766e; --canvas: #ffffff; --raised: #ffffff; --mist: #f4f6f9; --ink: #1b1c1f; --slate: #5e6470; --hair: #e6e8ec; --on-ink: #fff;
+      --bar: #f4f6f9;
+      --font: 'Google Sans Flex', 'Google Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
-    footer { text-align: center; color: var(--muted); font-size: 13px; padding-bottom: 40px; }
+    :root[data-theme="dark"] { color-scheme: dark; --canvas: #0d0e11; --raised: #16181d; --mist: #1d2026; --ink: #eceef2; --slate: #9aa1ad; --hair: #262a31; --on-ink: #0d0e11; --bar: #16181d; }
+    @media (prefers-color-scheme: dark) {
+      :root[data-theme="system"] { color-scheme: dark; --canvas: #0d0e11; --raised: #16181d; --mist: #1d2026; --ink: #eceef2; --slate: #9aa1ad; --hair: #262a31; --on-ink: #0d0e11; --bar: #16181d; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font); background: var(--canvas); color: var(--ink); font-size: 16px; line-height: 1.55; }
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    h1, h2 { font-weight: 400; letter-spacing: -0.03em; margin: 0; }
+
+    /* Demo bar: explains what this page is, and where the owner's side lives */
+    .demo-bar { background: var(--bar); border-bottom: 1px solid var(--hair); font-size: 14px; padding: 8px 20px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: center; text-align: center; }
+    .demo-bar a { font-weight: 600; }
+    .theme-switch { display: inline-flex; padding: 2px; border: 1px solid var(--hair); border-radius: 999px; background: var(--raised); }
+    .theme-switch button { border: 0; background: none; color: var(--slate); font: 500 12px var(--font); padding: 0 10px; min-height: 28px; border-radius: 999px; cursor: pointer; }
+    .theme-switch button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+
+    .nav { max-width: 1080px; margin: 0 auto; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .nav .name { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; font-size: 17px; letter-spacing: -0.01em; }
+    .nav .mark { width: 12px; height: 12px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 500 16px/1 var(--font); text-decoration: none; cursor: pointer; border: 1px solid var(--brand); background: var(--brand); color: #fff; white-space: nowrap; transition: transform .15s; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.ghost { background: transparent; color: var(--ink); border-color: var(--hair); }
+    .btn.small { min-height: 40px; padding: 0 18px; font-size: 15px; }
+
+    /* Hero: the business name, big and calm, over a soft glow in its own brand colour */
+    .hero { position: relative; isolation: isolate; text-align: center; padding: 72px 20px 88px; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; left: 50%; top: 58%; width: min(900px, 140vw); aspect-ratio: 2 / 1; transform: translate(-50%, -50%); background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 26%, transparent), transparent); filter: blur(10px); z-index: -1; }
+    .hero .kind { color: var(--slate); margin: 0 0 14px; }
+    .hero h1 { font-size: clamp(42px, 8vw, 92px); line-height: 1.02; letter-spacing: -0.04em; max-width: 14ch; margin: 0 auto 20px; text-wrap: balance; }
+    .hero .tagline { color: var(--slate); font-size: clamp(17px, 2.2vw, 20px); max-width: 40ch; margin: 0 auto 34px; text-wrap: pretty; }
+    .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+    main { max-width: 1080px; margin: 0 auto; padding: 0 20px 72px; display: grid; gap: 64px; }
+    .section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 22px; }
+    .section-head h2 { font-size: clamp(28px, 4vw, 40px); }
+    .section-head p { color: var(--slate); margin: 0; }
+
+    /* Services as a menu/price list: name ..... price */
+    .menu { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; }
+    .menu li { padding: 18px 0; border-bottom: 1px solid var(--hair); }
+    .menu .line { display: flex; align-items: baseline; gap: 10px; }
+    .menu .line b { font-weight: 500; }
+    .menu .line .leader { flex: 1; border-bottom: 1px dotted var(--hair); transform: translateY(-4px); min-width: 20px; }
+    .menu .line .price { white-space: nowrap; }
+    .menu .dur { color: var(--slate); font-size: 14px; }
+
+    .visit { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--hair); border: 1px solid var(--hair); border-radius: 28px; overflow: hidden; }
+    .visit > div { background: var(--raised); padding: 26px; }
+    .visit .label { color: var(--slate); font-size: 14px; margin-bottom: 6px; }
+    .visit .value { font-size: 18px; }
+    .visit .value a { text-decoration: none; }
+    .visit .value a:hover { text-decoration: underline; }
+    .visit .wa { display: inline-block; margin-top: 10px; font-size: 15px; font-weight: 500; color: #1f9d55; }
+
+    footer { text-align: center; color: var(--slate); font-size: 14px; padding: 0 20px 44px; }
+
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    @media (max-width: 760px) {
+      .menu { grid-template-columns: 1fr; }
+      .visit { grid-template-columns: 1fr; }
+      .hero { padding: 48px 16px 64px; }
+      main { padding: 0 16px 56px; gap: 48px; }
+      .nav { padding: 14px 16px; }
+      .hero .actions .btn { flex: 1 1 100%; }
+    }
   </style>
 </head>
 <body>
-  <div class="banner"><span>Demo website: the chat assistant in the bottom-right corner is the product. Try it!</span><button type="button" id="themeToggle"></button></div>
-  <header>
+  <div class="demo-bar">
+    <span>Sample website. The chat in the corner is the assistant your customers talk to.</span>
+    <a href="/admin">See the owner's dashboard</a>
+    <div class="theme-switch" id="themeSwitch" role="group" aria-label="Colour theme"></div>
+  </div>
+
+  <nav class="nav" aria-label="Site">
+    <span class="name"><span class="mark" aria-hidden="true"></span><span id="navName">Loading…</span></span>
+    <a class="btn small" id="navBook" href="#" target="_blank" rel="noopener">Book now</a>
+  </nav>
+
+  <header class="hero">
+    <p class="kind" id="kind"></p>
     <h1 id="name">Loading…</h1>
-    <p id="tagline"></p>
-    <a class="cta" id="book" href="#" target="_blank" rel="noopener">Book now</a>
+    <p class="tagline" id="tagline"></p>
+    <div class="actions">
+      <a class="btn" id="book" href="#" target="_blank" rel="noopener">Book now</a>
+      <button type="button" class="btn ghost" id="ask">Ask a question</button>
+    </div>
   </header>
+
   <main>
-    <section class="card"><h2>Services</h2><div class="services" id="services"></div></section>
-    <section class="card"><h2>Visit us</h2><div class="info" id="info"></div></section>
+    <section aria-labelledby="svcTitle">
+      <div class="section-head"><h2 id="svcTitle">Prices</h2><p>Questions about anything here? Ask the assistant, day or night.</p></div>
+      <ul class="menu" id="services"></ul>
+    </section>
+    <section aria-labelledby="visitTitle">
+      <div class="section-head"><h2 id="visitTitle">Visit us</h2></div>
+      <div class="visit" id="info"></div>
+    </section>
   </main>
-  <footer>Sample business page · Marketing agent demo</footer>
+  <footer id="foot"></footer>
 
   <script>
-    const toggle = document.getElementById('themeToggle');
-    const THEMES = { system: '🖥️ System', dark: '🌙 Dark', light: '☀️ Light' };
-    const NEXT_THEME = { system: 'dark', dark: 'light', light: 'system' };
-    const paint = () => (toggle.textContent = THEMES[document.documentElement.dataset.theme] || THEMES.system);
-    toggle.addEventListener('click', () => {
-      const next = NEXT_THEME[document.documentElement.dataset.theme] || 'dark';
-      document.documentElement.dataset.theme = next;
-      try { localStorage.setItem('ma-theme', next); } catch {}
-      paint();
-    });
+    // Theme: System / Dark / Light, shared with the dashboard.
+    const box = document.getElementById('themeSwitch');
+    for (const [key, label] of [['system', 'System'], ['dark', 'Dark'], ['light', 'Light']]) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label; b.dataset.themeSet = key;
+      b.addEventListener('click', () => {
+        document.documentElement.dataset.theme = key;
+        try { localStorage.setItem('ma-theme', key); } catch {}
+        paint();
+      });
+      box.append(b);
+    }
+    const paint = () => box.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === (document.documentElement.dataset.theme || 'system'))));
     paint();
 
     const id = location.pathname.split('/').filter(Boolean).pop();
-    const el = (tag, text) => { const e = document.createElement(tag); if (text) e.textContent = text; return e; };
+    const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
+    const $ = (s) => document.getElementById(s);
+
+    document.getElementById('ask').addEventListener('click', () => window.dispatchEvent(new Event('marketing-agent:open')));
+
+    // "+234 800 000 5678" → "2348000005678" for a WhatsApp chat link.
+    const waDigits = (phone) => { const d = String(phone || '').replace(/\D/g, ''); return String(phone).trim().startsWith('+') && d.length >= 8 ? d : ''; };
 
     fetch(`/api/public/business/${encodeURIComponent(id)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((b) => {
         document.title = b.name;
-        document.documentElement.style.setProperty('--brand', b.brandColor);
-        document.getElementById('name').textContent = b.name;
-        document.getElementById('tagline').textContent = b.tagline || b.type || '';
-        const book = document.getElementById('book');
-        if (b.bookingLink) book.href = b.bookingLink; else book.remove();
+        if (/^#[0-9a-f]{6}$/i.test(b.brandColor || '')) document.documentElement.style.setProperty('--brand', b.brandColor);
+        $('navName').textContent = b.name;
+        $('name').textContent = b.name;
+        $('kind').textContent = b.type || '';
+        $('tagline').textContent = b.tagline || '';
+        for (const bookId of ['book', 'navBook']) {
+          if (/^https?:\/\//i.test(b.bookingLink || '')) $(bookId).href = b.bookingLink; else $(bookId).remove();
+        }
 
-        const svc = document.getElementById('services');
+        const svc = $('services');
         for (const s of b.services || []) {
-          const d = el('div'); d.className = 'svc';
-          d.append(el('b', s.name), el('span', [s.price, s.duration].filter(Boolean).join(' · ')));
-          svc.append(d);
+          const li = el('li');
+          const line = el('div', null, 'line');
+          line.append(el('b', s.name), el('span', null, 'leader'), el('span', s.price || '', 'price'));
+          li.append(line);
+          if (s.duration) li.append(el('div', s.duration, 'dur'));
+          svc.append(li);
         }
-        const info = document.getElementById('info');
-        for (const [label, value] of [['Hours', b.hours], ['Address', b.address], ['Phone', b.phone]]) {
-          if (!value) continue;
-          const d = el('div'); d.append(el('b', label), el('span', value)); info.append(d);
-        }
+        if (!svc.children.length) svc.closest('section').remove();
+
+        const info = $('info');
+        const add = (label, build) => { const d = el('div'); d.append(el('div', label, 'label')); const v = el('div', null, 'value'); build(v); d.append(v); info.append(d); };
+        if (b.hours) add('Hours', (v) => (v.textContent = b.hours));
+        if (b.address) add('Address', (v) => (v.textContent = b.address));
+        if (b.phone) add('Call or WhatsApp', (v) => {
+          const a = el('a', b.phone); a.href = `tel:${b.phone.replace(/[^\d+]/g, '')}`; v.append(a);
+          const wa = waDigits(b.phone);
+          if (wa) { const w = el('a', 'Chat on WhatsApp', 'wa'); w.href = `https://wa.me/${wa}`; w.target = '_blank'; w.rel = 'noopener'; v.append(el('br'), w); }
+        });
+        if (!info.children.length) info.closest('section').remove();
+        $('foot').textContent = `© ${new Date().getFullYear()} ${b.name}`;
 
         const w = document.createElement('script');
         w.src = '/widget.js';
         w.dataset.business = b.id;
         document.body.append(w);
       })
-      .catch(() => { document.getElementById('name').textContent = 'Business not found'; });
+      .catch(() => { $('name').textContent = 'Business not found'; $('navName').textContent = ''; });
   </script>
 </body>
 </html>

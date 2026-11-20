@@ -131,6 +131,9 @@
 
   $('.bubble').addEventListener('click', () => (panel.classList.contains('open') ? panel.classList.remove('open') : open()));
   $('.close').addEventListener('click', () => panel.classList.remove('open'));
+  // The website can open the chat from its own buttons ("Ask a question"):
+  //   window.dispatchEvent(new Event('marketing-agent:open'))
+  window.addEventListener('marketing-agent:open', open);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

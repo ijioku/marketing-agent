@@ -4,7 +4,7 @@ import { getBusiness, listBusinesses, saveBusiness, publicProfile, isValidId } f
 import { initStore, getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts, getLead, markFollowedUp } from './lib/store.js';
 import { chatReply, draftMessage, draftKinds, aiInfo, CAMPAIGN_GOALS } from './lib/ai.js';
 import { importContacts, listContacts, deleteContact, deleteContacts, unsubscribeByToken, getContactByReferralCode, backfillReferralCodes } from './lib/contacts.js';
-import { previewAudience, createCampaign, listCampaigns, getCampaign, updateMessage, approveAll, startSending } from './lib/campaigns.js';
+import { previewAudience, createCampaign, listCampaigns, getCampaign, getMessage, updateMessage, approveAll, startSending } from './lib/campaigns.js';
 import { mailerInfo, sendEmail } from './lib/mailer.js';
 import { socialInfo, verifyChallenge, isValidSignature, extractMessages, isDuplicate, sendReply } from './lib/social.js';
 import {
@@ -14,17 +14,22 @@ import {
   recordLoginFailure,
   recordLoginSuccess,
   createSession,
-  isValidSession,
+  getSessionUser,
   destroySession,
+  destroySessionsWhere,
   readCookie,
   sessionCookie,
   SESSION_COOKIE,
   rateLimiter,
   securityHeaders,
 } from './lib/security.js';
+import { authenticate, listLogins, getLogin, createLogin, setPassword, deleteLogin, checkCurrentPassword } from './lib/accounts.js';
+import { DEMO_ID, isDemoBusiness, resetDemo, ensureFreshDemo, demoActivity } from './lib/demo.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
+// The main admin signs in with this username (or an empty username) + ADMIN_PASSWORD.
+const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim().toLowerCase();
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const PUBLIC_DIR = path.join(import.meta.dirname, 'public');
 const FOLLOW_UP_AFTER_HOURS = Math.max(1, Number(process.env.FOLLOW_UP_AFTER_HOURS) || 24);
@@ -159,7 +164,7 @@ async function handleSocialMessage(msg) {
 function notifyOwner(biz, lead) {
   const SOURCES = { referral: 'referral', whatsapp: 'WhatsApp', instagram: 'Instagram', chat: 'website chat' };
   console.log(`[inquiry] ${biz.name}: new ${SOURCES[lead.source] || 'website chat'} inquiry`);
-  if (!biz.email) return;
+  if (!biz.email || isDemoBusiness(biz.id)) return; // the sample business never emails anyone
   const how = {
     referral: `They were invited by your customer ${lead.referredByName}.`,
     whatsapp: 'They messaged you on WhatsApp and the assistant replied.',
@@ -320,20 +325,43 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(429).json({ error: `Too many wrong passwords. Try again in ${Math.ceil(lock.retryAfterSec / 60)} minute(s).`, retryAfterSec: lock.retryAfterSec });
   }
 
-  if (!safeEqual(req.body?.password ?? '', ADMIN_PASSWORD)) {
+  // Empty username or "admin" = the main admin; anything else is a business owner's email.
+  const username = String(req.body?.username ?? '').trim().toLowerCase().slice(0, 120);
+  const password = String(req.body?.password ?? '');
+  let user = null;
+  if (!username || username === ADMIN_USERNAME) {
+    if (safeEqual(password, ADMIN_PASSWORD)) user = { id: 'admin', role: 'admin', name: 'Admin' };
+  } else {
+    user = authenticate(username, password);
+  }
+
+  if (!user) {
     const r = recordLoginFailure(ip);
     console.warn(`[security] failed login from ${ip}${r.locked ? ' (now locked)' : ''}`);
     if (r.locked) {
       res.set('Retry-After', String(r.retryAfterSec));
       return res.status(429).json({ error: `Too many wrong passwords. Try again in ${Math.ceil(r.retryAfterSec / 60)} minute(s).`, retryAfterSec: r.retryAfterSec });
     }
-    return res.status(401).json({ error: `Wrong password. ${r.attemptsLeft} attempt(s) left before a 15-minute lock.` });
+    return res.status(401).json({ error: `Wrong email or password. ${r.attemptsLeft} attempt(s) left before a 15-minute lock.` });
   }
 
   recordLoginSuccess(ip);
-  const { token, maxAgeSec } = createSession();
+  const { token, maxAgeSec } = createSession(user);
   res.set('Set-Cookie', sessionCookie(token, maxAgeSec, req.secure));
-  res.json({ ok: true });
+  res.json({ ok: true, role: user.role });
+});
+
+// "Try the demo": prospects sign into the sample business with one click, no password.
+// They can only ever see and change the sample business, which resets itself.
+const demoLoginLimit = rateLimiter({ windowMs: 15 * 60_000, max: 20 });
+app.post('/api/admin/demo-login', (req, res) => {
+  const origin = req.get('origin');
+  if (origin && origin !== `${req.protocol}://${req.get('host')}`) return res.status(403).json({ error: 'Blocked: request came from another website.' });
+  if (!demoLoginLimit(req.ip).allowed) return res.status(429).json({ error: 'Too many demo sign-ins. Please try again later.' });
+  ensureFreshDemo();
+  const { token, maxAgeSec } = createSession({ id: 'demo', role: 'demo', businessId: DEMO_ID, name: 'Demo visitor' });
+  res.set('Set-Cookie', sessionCookie(token, maxAgeSec, req.secure));
+  res.json({ ok: true, role: 'demo' });
 });
 
 app.post('/api/admin/logout', (req, res) => {
@@ -347,7 +375,10 @@ app.post('/api/admin/logout', (req, res) => {
 const admin = express.Router();
 
 admin.use((req, res, next) => {
-  if (!isValidSession(readCookie(req, SESSION_COOKIE))) return res.status(401).json({ error: 'Please sign in.' });
+  const user = getSessionUser(readCookie(req, SESSION_COOKIE));
+  if (!user) return res.status(401).json({ error: 'Please sign in.' });
+  req.user = user;
+  if (user.role === 'demo') demoActivity();
   // Extra CSRF guard: changes must come from this site, as JSON.
   if (req.method !== 'GET') {
     const origin = req.get('origin');
@@ -357,18 +388,78 @@ admin.use((req, res, next) => {
   next();
 });
 
+// ----- Who can see what -----
+// The admin sees every business. An owner (or the demo visitor) only ever sees their own:
+// asking for another business's data answers "Not found", as if it didn't exist.
+const isAdmin = (req) => req.user.role === 'admin';
+const canSee = (req, businessId) => isAdmin(req) || (Boolean(businessId) && req.user.businessId === businessId);
+const adminOnly = (req, res, next) => (isAdmin(req) ? next() : res.status(403).json({ error: 'Only the main admin can do this.' }));
+const noDemo = (req, res, next) => (req.user.role === 'demo' ? res.status(403).json({ error: 'This is turned off in the demo.' }) : next());
+
+// Every /businesses/:id/... route checks the business belongs to the signed-in user.
+admin.param('id', (req, res, next, id) => (canSee(req, id) ? next() : res.status(404).json({ error: 'Not found' })));
+
+admin.get('/me', (req, res) => {
+  const { id, role, businessId, email, name } = req.user;
+  res.json({ id, role, businessId, email, name });
+});
+
+// Owners change their own password (they must know the current one).
+admin.post('/me/password', noDemo, (req, res) => {
+  if (req.user.role !== 'owner') return res.status(400).json({ error: 'The admin password is set in the server settings (ADMIN_PASSWORD).' });
+  if (!checkCurrentPassword(req.user.id, req.body?.current)) return res.status(400).json({ error: 'Your current password is wrong.' });
+  try {
+    setPassword(req.user.id, req.body?.password);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+  // Sign out every other device; this one gets a fresh session.
+  destroySessionsWhere((u) => u.id === req.user.id);
+  const { token, maxAgeSec } = createSession(req.user);
+  res.set('Set-Cookie', sessionCookie(token, maxAgeSec, req.secure));
+  res.json({ ok: true });
+});
+
+// ----- Owner logins (main admin only) -----
+admin.get('/businesses/:id/logins', adminOnly, (req, res) => res.json(listLogins(req.params.id)));
+admin.post('/businesses/:id/logins', adminOnly, (req, res) => {
+  if (!getBusiness(req.params.id)) return res.status(404).json({ error: 'Business not found' });
+  if (isDemoBusiness(req.params.id)) return res.status(400).json({ error: 'The demo business uses the one-click demo login instead.' });
+  try {
+    res.json(createLogin(req.params.id, req.body || {}));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+admin.post('/logins/:uid/password', adminOnly, (req, res) => {
+  try {
+    const u = setPassword(req.params.uid, req.body?.password);
+    if (!u) return res.status(404).json({ error: 'Login not found' });
+    destroySessionsWhere((s) => s.id === u.id); // the old password stops working everywhere
+    res.json(u);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+admin.delete('/logins/:uid', adminOnly, (req, res) => {
+  const u = getLogin(req.params.uid);
+  if (!u || !deleteLogin(u.id)) return res.status(404).json({ error: 'Login not found' });
+  destroySessionsWhere((s) => s.id === u.id);
+  res.json({ ok: true });
+});
+
 admin.get('/status', (req, res) =>
   res.json({
     ai: aiInfo(),
     email: mailerInfo(),
     draftKinds,
     campaignGoals: Object.fromEntries(Object.entries(CAMPAIGN_GOALS).map(([k, v]) => [k, v.label])),
-    weakPassword: isWeakPassword(ADMIN_PASSWORD),
+    weakPassword: isAdmin(req) && isWeakPassword(ADMIN_PASSWORD),
     social: socialInfo(),
     followUpAfterHours: FOLLOW_UP_AFTER_HOURS,
   })
 );
-admin.get('/businesses', (req, res) => res.json(listBusinesses()));
+admin.get('/businesses', (req, res) => res.json(listBusinesses().filter((b) => canSee(req, b.id))));
 
 admin.get('/businesses/:id', (req, res) => {
   const biz = getBusiness(req.params.id);
@@ -376,7 +467,9 @@ admin.get('/businesses/:id', (req, res) => {
   res.json(biz);
 });
 
-admin.post('/businesses', (req, res) => {
+admin.post('/businesses', noDemo, (req, res) => {
+  // Owners may edit their own profile, but not create or overwrite another business.
+  if (!isAdmin(req) && req.body?.id !== req.user.businessId) return res.status(403).json({ error: 'You can only edit your own business.' });
   try {
     res.json(saveBusiness(req.body || {}));
   } catch (err) {
@@ -387,8 +480,13 @@ admin.post('/businesses', (req, res) => {
 admin.get('/businesses/:id/leads', (req, res) => res.json(listLeads(req.params.id)));
 admin.get('/businesses/:id/conversations', (req, res) => res.json(listConversations(req.params.id)));
 
-admin.patch('/leads/:id', (req, res) => {
-  const lead = updateLeadStatus(req.params.id, req.body?.status);
+// Routes that look a record up by its own id check its business before touching it.
+const ownLead = (req, res, next) => (canSee(req, getLead(req.params.leadId)?.businessId) ? next() : res.status(404).json({ error: 'Not found' }));
+const ownCampaign = (req, res, next) => (canSee(req, getCampaign(req.params.cid)?.businessId) ? next() : res.status(404).json({ error: 'Not found' }));
+const ownMessage = (req, res, next) => (canSee(req, getMessage(req.params.mid)?.businessId) ? next() : res.status(404).json({ error: 'Not found' }));
+
+admin.patch('/leads/:leadId', ownLead, (req, res) => {
+  const lead = updateLeadStatus(req.params.leadId, req.body?.status);
   if (!lead) return res.status(400).json({ error: 'Could not update lead' });
   res.json(lead);
 });
@@ -412,8 +510,8 @@ function whatsappNumber(phone, biz) {
   return digits.length >= 8 && digits.length <= 15 ? digits : '';
 }
 
-admin.post('/leads/:id/follow-up/draft', async (req, res) => {
-  const lead = getLead(req.params.id);
+admin.post('/leads/:leadId/follow-up/draft', ownLead, async (req, res) => {
+  const lead = getLead(req.params.leadId);
   const biz = lead && getBusiness(lead.businessId);
   if (!biz) return res.status(404).json({ error: 'Not found' });
   try {
@@ -425,8 +523,8 @@ admin.post('/leads/:id/follow-up/draft', async (req, res) => {
   }
 });
 
-admin.post('/leads/:id/follow-up/send', async (req, res) => {
-  const lead = getLead(req.params.id);
+admin.post('/leads/:leadId/follow-up/send', ownLead, async (req, res) => {
+  const lead = getLead(req.params.leadId);
   const biz = lead && getBusiness(lead.businessId);
   if (!biz) return res.status(404).json({ error: 'Not found' });
   const channel = req.body?.channel === 'whatsapp' ? 'whatsapp' : 'email';
@@ -435,6 +533,7 @@ admin.post('/leads/:id/follow-up/send', async (req, res) => {
     const text = String(req.body?.text || '').trim().slice(0, 3000);
     if (!lead.email) return res.status(400).json({ error: 'This person has no email address.' });
     if (!text) return res.status(400).json({ error: 'Write a message first.' });
+    if (isDemoBusiness(biz.id)) return res.json(markFollowedUp(lead.id, channel)); // demo: pretend, never email
     try {
       const signature = [`— ${biz.name}`, biz.address].filter(Boolean).join('\n');
       await sendEmail({ to: lead.email, toName: lead.name, fromName: biz.name, replyTo: biz.email, subject, text: `${text}\n\n${signature}` });
@@ -476,7 +575,7 @@ admin.get(
     return listContacts(biz.id).map((c) => ({ ...c, referrals: counts[c.id] || 0 }));
   })
 );
-admin.post('/businesses/:id/contacts/import', withBiz((biz, req) => importContacts(biz.id, String(req.body?.csv || ''))));
+admin.post('/businesses/:id/contacts/import', noDemo, withBiz((biz, req) => importContacts(biz.id, String(req.body?.csv || ''))));
 admin.delete('/businesses/:id/contacts', withBiz((biz) => (deleteContacts(biz.id), { ok: true })));
 admin.delete(
   '/businesses/:id/contacts/:contactId',
@@ -502,10 +601,10 @@ const handle = (fn) => (req, res) => {
   }
 };
 
-admin.get('/campaigns/:cid', handle((req) => getCampaign(req.params.cid)));
-admin.post('/campaigns/:cid/approve-all', handle((req) => ({ approved: approveAll(req.params.cid) })));
-admin.post('/campaigns/:cid/send', handle((req) => startSending(req.params.cid)));
-admin.patch('/messages/:mid', handle((req) => updateMessage(req.params.mid, req.body || {})));
+admin.get('/campaigns/:cid', ownCampaign, handle((req) => getCampaign(req.params.cid)));
+admin.post('/campaigns/:cid/approve-all', ownCampaign, handle((req) => ({ approved: approveAll(req.params.cid) })));
+admin.post('/campaigns/:cid/send', ownCampaign, handle((req) => startSending(req.params.cid)));
+admin.patch('/messages/:mid', ownMessage, handle((req) => updateMessage(req.params.mid, req.body || {})));
 
 app.use('/api/admin', admin);
 
@@ -524,6 +623,7 @@ app.use((err, req, res, next) => {
 // Connect storage (files locally, Postgres when DATABASE_URL is set) before serving.
 const storage = await initStore();
 backfillReferralCodes(); // contacts imported before referrals existed get an invite code
+resetDemo(); // the sample business starts fresh after every restart
 
 app.listen(PORT, () => {
   const ai = aiInfo();

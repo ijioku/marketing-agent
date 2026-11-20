@@ -2,7 +2,7 @@
 // It caches only the app shell (page, icon). Customer data and API calls are
 // NEVER cached: they always come fresh from the server, so nothing private is
 // left on the phone and you never see stale numbers.
-const CACHE = 'ma-shell-v1';
+const CACHE = 'ma-shell-v2';
 const SHELL = ['/admin', '/icon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
