@@ -271,6 +271,8 @@ app.use(express.static(PUBLIC_DIR, { index: false }));
 app.get('/demo/:id', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'demo.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'admin.html')));
 app.get('/', (req, res) => res.redirect('/admin'));
+// Hosting platforms ping this to check the app is alive.
+app.get('/healthz', (req, res) => res.json({ ok: true }));
 
 // Unsubscribe link in every campaign email. GET shows a confirm button
 // (so link scanners can't unsubscribe people by accident); POST does it,

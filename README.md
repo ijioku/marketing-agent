@@ -109,6 +109,17 @@ All settings live in `.env` (see `.env.example`):
 | `FOLLOW_UP_AFTER_HOURS` | When an unanswered inquiry gets flagged ⏰ (default 24) |
 | `TRUST_PROXY` | Set to `1` behind a hosting proxy so rate limits see real visitor IPs |
 
+## Deploy
+
+Any Node.js host with a **persistent disk** works (Railway, Render, Fly.io, or a small VPS). Free tiers that wipe the disk on restart will lose your data.
+
+1. Create a service from this GitHub repo. Start command: `npm start`. Node 22.9+.
+2. Attach a **volume / persistent disk** and mount it at `/data`.
+3. Set environment variables in the host's dashboard (never commit them):
+   `NODE_ENV=production`, `DATA_DIR=/data`, `TRUST_PROXY=1`, `ADMIN_PASSWORD=<10+ characters>`, `PUBLIC_URL=https://your-app-domain`, plus `AI_API_KEY` and any email/Meta settings.
+4. Health check path: `/healthz`.
+5. Open `https://your-app-domain/admin`. HTTPS is provided by the host.
+
 ## WhatsApp & Instagram setup
 
 Auto-replies use Meta's official business APIs. Until access tokens are added, replies are saved to `data/social_outbox.json` (test mode).
