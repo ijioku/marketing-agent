@@ -1,11 +1,12 @@
 import express from 'express';
 import path from 'node:path';
 import { getBusiness, listBusinesses, saveBusiness, publicProfile, isValidId } from './lib/businesses.js';
-import { getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts } from './lib/store.js';
+import { getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts, getLead, markFollowedUp } from './lib/store.js';
 import { chatReply, draftMessage, draftKinds, aiInfo, CAMPAIGN_GOALS } from './lib/ai.js';
 import { importContacts, listContacts, deleteContacts, unsubscribeByToken, getContactByReferralCode, backfillReferralCodes } from './lib/contacts.js';
 import { previewAudience, createCampaign, listCampaigns, getCampaign, updateMessage, approveAll, startSending } from './lib/campaigns.js';
 import { mailerInfo, sendEmail } from './lib/mailer.js';
+import { socialInfo, verifyChallenge, isValidSignature, extractMessages, isDuplicate, sendReply } from './lib/social.js';
 import {
   safeEqual,
   isWeakPassword,
@@ -26,6 +27,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const PUBLIC_DIR = path.join(import.meta.dirname, 'public');
+const FOLLOW_UP_AFTER_HOURS = Math.max(1, Number(process.env.FOLLOW_UP_AFTER_HOURS) || 24);
 
 // Refuse to go live with a guessable password.
 if (IS_PRODUCTION && isWeakPassword(ADMIN_PASSWORD)) {
@@ -93,15 +95,76 @@ app.post('/api/public/chat', async (req, res) => {
   res.json({ reply: result.reply });
 });
 
+// ---------- WhatsApp & Instagram auto-replies ----------
+// Meta calls this webhook for every new message. See lib/social.js and README.
+
+app.get('/webhooks/meta', (req, res) => {
+  const challenge = verifyChallenge(req.query);
+  if (challenge === null) return res.sendStatus(403);
+  res.type('text/plain').send(challenge);
+});
+
+const socialPerSender = rateLimiter({ windowMs: 5 * 60_000, max: 20 });
+
+app.post('/webhooks/meta', express.raw({ type: '*/*', limit: '1mb' }), (req, res) => {
+  // Reject anything not signed by Meta with our app secret.
+  if (!Buffer.isBuffer(req.body) || !isValidSignature(req.body, req.get('x-hub-signature-256'))) return res.sendStatus(401);
+  let payload;
+  try {
+    payload = JSON.parse(req.body.toString('utf8'));
+  } catch {
+    return res.sendStatus(400);
+  }
+  res.sendStatus(200); // answer Meta right away; reply to customers in the background
+  for (const msg of extractMessages(payload)) {
+    if (isDuplicate(msg.id)) continue;
+    handleSocialMessage(msg).catch((err) => console.error(`[${msg.channel}] reply failed:`, err.message));
+  }
+});
+
+async function handleSocialMessage(msg) {
+  const biz = getBusiness(msg.businessId);
+  if (!biz) return;
+  const sessionId = `${msg.channel === 'whatsapp' ? 'wa' : 'ig'}-${msg.from}`;
+  if (!socialPerSender(`${msg.businessId}:${sessionId}`).allowed) return; // ignore floods
+  if (!msg.text.trim()) {
+    return sendReply(msg, "Thanks for your message! I can only read text right now. Please type your question and I'll help.");
+  }
+  const text = msg.text.trim().slice(0, 1000);
+  const { messages: history } = getConversation(biz.id, sessionId);
+  const result = await chatReply(biz, history, text);
+  appendMessages(biz.id, sessionId, [{ role: 'user', content: text }, { role: 'assistant', content: result.reply }], msg.channel);
+
+  // Save the inquiry BEFORE replying, so it's never lost if Meta's API fails.
+  // On WhatsApp we already know their number, but a lone "hi" or spam shouldn't
+  // alert the owner: wait until they say something meaningful (the AI found an
+  // interest, name or email) or send a second message.
+  const fields = { ...(result.lead || {}) };
+  const meaningful = Boolean(fields.interest || fields.name || fields.email || fields.phone) || history.some((m) => m.role === 'user');
+  if (msg.channel === 'whatsapp' && meaningful) {
+    fields.phone = fields.phone || `+${msg.from}`;
+    fields.name = fields.name || msg.name;
+  }
+  const { lead, created } = upsertLead(biz.id, sessionId, fields, msg.channel);
+  if (created) notifyOwner(biz, lead);
+
+  await sendReply(msg, result.reply);
+}
+
 // ---------- Instant owner alerts ----------
 // The faster a business replies to a new inquiry, the more likely it becomes a
 // customer, so the owner is emailed the moment someone leaves their details.
 // (In test mode the alert is saved to data/outbox.json like every other email.)
 
 function notifyOwner(biz, lead) {
-  console.log(`[inquiry] ${biz.name}: new ${lead.source === 'referral' ? 'referral' : 'website chat'} inquiry`);
+  const SOURCES = { referral: 'referral', whatsapp: 'WhatsApp', instagram: 'Instagram', chat: 'website chat' };
+  console.log(`[inquiry] ${biz.name}: new ${SOURCES[lead.source] || 'website chat'} inquiry`);
   if (!biz.email) return;
-  const how = lead.source === 'referral' ? `They were invited by your customer ${lead.referredByName}.` : 'They chatted with your website assistant.';
+  const how = {
+    referral: `They were invited by your customer ${lead.referredByName}.`,
+    whatsapp: 'They messaged you on WhatsApp and the assistant replied.',
+    instagram: 'They messaged you on Instagram and the assistant replied.',
+  }[lead.source] || 'They chatted with your website assistant.';
   const lines = [
     `New inquiry for ${biz.name}! ${how}`,
     '',
@@ -178,7 +241,7 @@ app.post('/r/:code', (req, res) => {
   // "website" is an invisible field: humans leave it empty, spam bots fill it in.
   if (!website && String(name).trim() && (validPhone || validEmail)) {
     const lead = addReferralLead(biz.id, referrer, { name: String(name), phone: validPhone ? String(phone) : '', email: validEmail ? String(email) : '' });
-    notifyOwner(biz, lead);
+    if (lead) notifyOwner(biz, lead); // null = already an inquiry; still show the friendly page
   } else if (!website) {
     return res.status(400).send(
       invitePage(biz, referrer, {
@@ -206,7 +269,8 @@ app.get('/', (req, res) => res.redirect('/admin'));
 // Unsubscribe link in every campaign email. GET shows a confirm button
 // (so link scanners can't unsubscribe people by accident); POST does it,
 // which also supports one-click unsubscribe from Gmail/Outlook.
-const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
+// `body` must be trusted HTML (only fixed text is passed in); the title is always escaped.
+const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title>
 <style>:root{color-scheme:light dark}body{font-family:system-ui,sans-serif;background:#f5f6f8;color:#111827;margin:0;display:grid;place-items:center;min-height:100vh;padding:16px}
 .c{background:#fff;border-radius:14px;padding:28px;max-width:420px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.08)}
 button{background:#111827;color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:15px;cursor:pointer;min-height:44px}
@@ -286,6 +350,8 @@ admin.get('/status', (req, res) =>
     draftKinds,
     campaignGoals: Object.fromEntries(Object.entries(CAMPAIGN_GOALS).map(([k, v]) => [k, v.label])),
     weakPassword: isWeakPassword(ADMIN_PASSWORD),
+    social: socialInfo(),
+    followUpAfterHours: FOLLOW_UP_AFTER_HOURS,
   })
 );
 admin.get('/businesses', (req, res) => res.json(listBusinesses()));
@@ -311,6 +377,59 @@ admin.patch('/leads/:id', (req, res) => {
   const lead = updateLeadStatus(req.params.id, req.body?.status);
   if (!lead) return res.status(400).json({ error: 'Could not update lead' });
   res.json(lead);
+});
+
+// ----- Follow-ups for inquiries who haven't booked -----
+// Many people ask once and never hear back. The dashboard flags inquiries that
+// have waited too long; the owner gets an AI-written follow-up to send by email
+// (from here) or by WhatsApp (opens their own WhatsApp with the message ready).
+
+// Turn "0803 555 0199" into "2348035550199" for WhatsApp links, using the
+// business's own country code ("+234 800 ...") when the number starts with 0.
+function whatsappNumber(phone, biz) {
+  const raw = String(phone || '').trim();
+  let digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (!raw.startsWith('+') && digits.startsWith('0')) {
+    const cc = String(biz.phone || '').match(/^\+(\d{1,3})[\s-]/)?.[1];
+    if (!cc) return '';
+    digits = cc + digits.slice(1);
+  }
+  return digits.length >= 8 && digits.length <= 15 ? digits : '';
+}
+
+admin.post('/leads/:id/follow-up/draft', async (req, res) => {
+  const lead = getLead(req.params.id);
+  const biz = lead && getBusiness(lead.businessId);
+  if (!biz) return res.status(404).json({ error: 'Not found' });
+  try {
+    const d = await draftMessage(biz, 'lead_follow_up', { customerName: (lead.name || '').split(' ')[0], notes: lead.interest || '' });
+    const wa = whatsappNumber(lead.phone, biz);
+    res.json({ ...d, whatsappUrl: wa ? `https://wa.me/${wa}?text=${encodeURIComponent(d.sms)}` : '', canEmail: Boolean(lead.email) });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+admin.post('/leads/:id/follow-up/send', async (req, res) => {
+  const lead = getLead(req.params.id);
+  const biz = lead && getBusiness(lead.businessId);
+  if (!biz) return res.status(404).json({ error: 'Not found' });
+  const channel = req.body?.channel === 'whatsapp' ? 'whatsapp' : 'email';
+  if (channel === 'email') {
+    const subject = String(req.body?.subject || `Following up from ${biz.name}`).slice(0, 120);
+    const text = String(req.body?.text || '').trim().slice(0, 3000);
+    if (!lead.email) return res.status(400).json({ error: 'This person has no email address.' });
+    if (!text) return res.status(400).json({ error: 'Write a message first.' });
+    try {
+      const signature = [`— ${biz.name}`, biz.address].filter(Boolean).join('\n');
+      await sendEmail({ to: lead.email, toName: lead.name, fromName: biz.name, replyTo: biz.email, subject, text: `${text}\n\n${signature}` });
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+  // For WhatsApp the owner sends it from their own phone; we just record it.
+  res.json(markFollowedUp(lead.id, channel));
 });
 
 admin.post('/businesses/:id/draft', async (req, res) => {
