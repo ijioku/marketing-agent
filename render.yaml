@@ -1,0 +1,25 @@
+# One-click setup on Render (render.com → New → Blueprint → pick this repo).
+# Free plan: the app sleeps after ~15 minutes without visitors and takes ~50s to wake.
+# Data lives in a free Postgres database (e.g. Neon), set as DATABASE_URL.
+services:
+  - type: web
+    name: marketing-agent
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      # Secrets: Render asks you to paste these when you create the service.
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: PUBLIC_URL
+        sync: false

@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'node:path';
 import { getBusiness, listBusinesses, saveBusiness, publicProfile, isValidId } from './lib/businesses.js';
-import { getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts, getLead, markFollowedUp } from './lib/store.js';
+import { initStore, getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts, getLead, markFollowedUp } from './lib/store.js';
 import { chatReply, draftMessage, draftKinds, aiInfo, CAMPAIGN_GOALS } from './lib/ai.js';
 import { importContacts, listContacts, deleteContacts, unsubscribeByToken, getContactByReferralCode, backfillReferralCodes } from './lib/contacts.js';
 import { previewAudience, createCampaign, listCampaigns, getCampaign, updateMessage, approveAll, startSending } from './lib/campaigns.js';
@@ -508,11 +508,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong.' });
 });
 
+// Connect storage (files locally, Postgres when DATABASE_URL is set) before serving.
+const storage = await initStore();
 backfillReferralCodes(); // contacts imported before referrals existed get an invite code
 
 app.listen(PORT, () => {
   const ai = aiInfo();
   console.log(`\nMarketing agent running → http://localhost:${PORT}/admin`);
+  console.log(`Storage: ${storage === 'database' ? 'Postgres database (DATABASE_URL)' : 'local files'}`);
   console.log(`AI mode: ${ai.enabled ? `ON (${ai.model})` : 'OFFLINE rules (add AI_API_KEY to .env for real AI)'}`);
   const mail = mailerInfo();
   console.log(`Email: ${mail.live ? `LIVE via ${mail.provider}` : mail.provider === 'log' ? 'TEST mode, emails saved to data/outbox.json, nothing is sent' : `${mail.provider} NOT configured`}`);

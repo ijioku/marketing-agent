@@ -70,7 +70,7 @@ Two sample businesses are included: a Lekki hair salon and a Victoria Island gym
 
 ## Tech stack
 
-**Node.js** · **Express 5** · vanilla **JavaScript, HTML & CSS** (no frontend framework) · any **OpenAI-compatible LLM API** (Groq, Gemini, OpenRouter) · **Brevo / Resend** for email · JSON file storage
+**Node.js** · **Express 5** · vanilla **JavaScript, HTML & CSS** (no frontend framework) · any **OpenAI-compatible LLM API** (Groq, Gemini, OpenRouter) · **Brevo / Resend** for email · JSON files locally or PostgreSQL (Neon) in production
 
 ## Project structure
 
@@ -83,7 +83,7 @@ lib/mailer.js        Email delivery (test mode, Brevo, Resend)
 lib/social.js        WhatsApp & Instagram webhooks and replies (Meta APIs)
 lib/security.js      Sessions, login lockout, rate limiting, security headers
 lib/businesses.js    Business profiles
-lib/store.js         JSON file storage
+lib/store.js         Storage: JSON files locally, PostgreSQL when DATABASE_URL is set
 public/admin.html    Owner dashboard
 public/widget.js     Embeddable website chat widget
 public/demo.html     Demo website for each business
@@ -111,14 +111,18 @@ All settings live in `.env` (see `.env.example`):
 
 ## Deploy
 
-Any Node.js host with a **persistent disk** works (Railway, Render, Fly.io, or a small VPS). Free tiers that wipe the disk on restart will lose your data.
+### Free: Render + Neon (no credit card)
 
-1. Create a service from this GitHub repo. Start command: `npm start`. Node 22.9+.
-2. Attach a **volume / persistent disk** and mount it at `/data`.
-3. Set environment variables in the host's dashboard (never commit them):
-   `NODE_ENV=production`, `DATA_DIR=/data`, `TRUST_PROXY=1`, `ADMIN_PASSWORD=<10+ characters>`, `PUBLIC_URL=https://your-app-domain`, plus `AI_API_KEY` and any email/Meta settings.
-4. Health check path: `/healthz`.
-5. Open `https://your-app-domain/admin`. HTTPS is provided by the host.
+1. **Database:** create a free project at [neon.tech](https://neon.tech) and copy its connection string (`postgresql://…`).
+2. **App:** at [render.com](https://render.com) choose **New → Blueprint** and select this repo (it reads `render.yaml`).
+3. Paste the secrets Render asks for: `ADMIN_PASSWORD` (10+ characters), `DATABASE_URL` (from Neon), `AI_API_KEY` (Groq), and `PUBLIC_URL` (your Render address, e.g. `https://marketing-agent-xxxx.onrender.com`; you can fill it in after the first deploy).
+4. Open `https://YOUR-APP.onrender.com/admin`.
+
+Free-plan trade-off: the app sleeps after ~15 minutes without visitors and takes ~50 seconds to wake up.
+
+### Paid / persistent disk
+
+On Railway, Render paid, Fly.io or a VPS you can skip the database: mount a disk at `/data` and set `DATA_DIR=/data` instead of `DATABASE_URL`. Also set `NODE_ENV=production`, `TRUST_PROXY=1`, `ADMIN_PASSWORD`, `PUBLIC_URL` and `AI_API_KEY`. Health check path: `/healthz`.
 
 ## WhatsApp & Instagram setup
 
