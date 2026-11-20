@@ -95,6 +95,9 @@
     #login { max-width: 360px; margin: 80px auto; }
     #login .top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
     #login .top h2 { margin: 0; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 76px; }
+    .pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 32px; border: 0; background: var(--btn2); color: var(--text); border-radius: 6px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
     .muted { color: var(--muted); }
     .banner-note { border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-weight: 500; }
     .banner-note.test { background: var(--warn-bg); color: var(--warn-text); }
@@ -151,7 +154,10 @@
     <div class="top"><h2>Agent dashboard</h2><button type="button" class="theme-toggle" data-theme-toggle></button></div>
     <p style="color:var(--muted)">Enter your dashboard password.</p>
     <form id="loginForm">
-      <input id="pw" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" required />
+      <div class="pw-wrap">
+        <input id="pw" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" required />
+        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">👁 Show</button>
+      </div>
       <div class="row"><button class="btn" id="loginBtn">Sign in</button></div>
       <div id="loginErr" class="msg err" role="alert"></div>
     </form>
@@ -416,6 +422,17 @@
     paintToggles();
 
     // ---------- Login ----------
+    // Show / hide the password while typing.
+    $('#pwToggle').addEventListener('click', () => {
+      const pw = $('#pw');
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      $('#pwToggle').textContent = show ? '🙈 Hide' : '👁 Show';
+      $('#pwToggle').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      $('#pwToggle').setAttribute('aria-pressed', String(show));
+      pw.focus();
+    });
+
     $('#loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = $('#loginBtn');
