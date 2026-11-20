@@ -6,7 +6,8 @@
   <title>Marketing Agent · AI assistant for WhatsApp, social media and your website</title>
   <!-- Search engines: what Google shows under the link. __APP_URL__ is filled in by the server. -->
   <meta name="description" content="An AI assistant that answers your customers on WhatsApp, social media and your website day and night, saves every inquiry, and writes the messages that bring past customers back. Built for Nigerian businesses." />
-  <meta name="robots" content="index, follow" />
+  <!-- max-image-preview:large lets Google show our images big in Search, Images and Discover -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
   <link rel="canonical" href="__APP_URL__/admin" />
   <!-- Link previews on WhatsApp, Facebook, LinkedIn, X and iMessage -->
   <meta property="og:type" content="website" />
@@ -16,6 +17,7 @@
   <meta property="og:title" content="Marketing Agent: never leave a customer on read" />
   <meta property="og:description" content="An AI assistant that answers WhatsApp, social media and your website day and night. Try the live demo, no sign-up needed." />
   <meta property="og:image" content="__APP_URL__/og.png" />
+  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Marketing Agent: an AI assistant replying to a hotel guest on WhatsApp" />
@@ -27,7 +29,15 @@
     "@type": "SoftwareApplication",
     "name": "Marketing Agent",
     "url": "__APP_URL__/admin",
-    "image": "__APP_URL__/og.png",
+    "image": {
+      "@type": "ImageObject",
+      "url": "__APP_URL__/og.png",
+      "width": 1200,
+      "height": 630,
+      "caption": "Marketing Agent: an AI assistant replying to a hotel guest on WhatsApp"
+    },
+    "screenshot": "__APP_URL__/og.png",
+    "logo": "__APP_URL__/icon-512.png",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web, Android, iOS",
     "description": "AI assistant that answers customers on WhatsApp, social media and websites, saves inquiries and drafts marketing messages for small businesses.",

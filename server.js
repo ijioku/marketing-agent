@@ -311,10 +311,11 @@ app.get('/robots.txt', (req, res) =>
   res.type('text/plain').send(['User-agent: *', 'Allow: /admin', 'Allow: /privacy', 'Allow: /terms', 'Disallow: /api/', 'Disallow: /u/', 'Disallow: /demo', '', `Sitemap: ${APP_URL}/sitemap.xml`, ''].join('\n'))
 );
 app.get('/sitemap.xml', (req, res) => {
-  const pages = [['/admin', '1.0'], ['/privacy', '0.3'], ['/terms', '0.3']];
+  // Image sitemap entries help Google Images find the pictures on each page.
+  const pages = [['/admin', '1.0', ['/og.png', '/icon-512.png']], ['/privacy', '0.3', []], ['/terms', '0.3', []]];
   res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(([p, pr]) => `  <url><loc>${APP_URL}${p}</loc><priority>${pr}</priority></url>`).join('\n')}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${pages.map(([p, pr, imgs]) => `  <url><loc>${APP_URL}${p}</loc><priority>${pr}</priority>${imgs.map((i) => `<image:image><image:loc>${APP_URL}${i}</image:loc></image:image>`).join('')}</url>`).join('\n')}
 </urlset>`);
 });
 app.use(express.static(PUBLIC_DIR, { index: false }));
