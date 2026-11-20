@@ -4,29 +4,44 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Demo site</title>
+  <script>
+    (function () {
+      let theme = 'system';
+      try { theme = localStorage.getItem('ma-theme') || 'system'; } catch {}
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <style>
-    :root { --brand: #111827; }
+    :root, :root[data-theme="dark"] { color-scheme: dark; --brand: #111827; --bg: #0b0f17; --card: #131a24; --text: #e6e9ef; --muted: #8b95a7; --line: #263042; --banner-bg: rgba(245,158,11,.14); --banner-text: #fcd34d; }
+    :root[data-theme="light"] { color-scheme: light; --bg: #fafafa; --card: #ffffff; --text: #111827; --muted: #6b7280; --line: #e5e7eb; --banner-bg: #fef3c7; --banner-text: #78350f; }
+    @media (prefers-color-scheme: light) { :root[data-theme="system"] { color-scheme: light; --bg: #fafafa; --card: #ffffff; --text: #111827; --muted: #6b7280; --line: #e5e7eb; --banner-bg: #fef3c7; --banner-text: #78350f; } }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111827; background: #fafafa; }
-    .banner { background: #fef3c7; color: #78350f; font-size: 13px; text-align: center; padding: 8px 16px; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); background: var(--bg); }
+    .banner { background: var(--banner-bg); color: var(--banner-text); font-size: 13px; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
+    .banner button { background: transparent; color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
     header { background: var(--brand); color: #fff; padding: 64px 16px 72px; text-align: center; }
     header h1 { margin: 0 0 10px; font-size: clamp(30px, 6vw, 48px); }
     header p { margin: 0 auto; max-width: 560px; opacity: .9; font-size: 18px; }
     .cta { display: inline-block; margin-top: 26px; background: #fff; color: var(--brand); padding: 12px 22px; border-radius: 999px; font-weight: 700; text-decoration: none; }
     main { max-width: 960px; margin: -36px auto 60px; padding: 0 16px; display: grid; gap: 20px; }
-    .card { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.06); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.06); }
     .card h2 { margin: 0 0 14px; font-size: 20px; }
     .services { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-    .svc { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; }
+    .svc { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
     .svc b { display: block; margin-bottom: 4px; }
-    .svc span { color: #6b7280; font-size: 14px; }
-    .info { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; color: #374151; }
-    .info div b { display: block; color: #111827; margin-bottom: 2px; }
-    footer { text-align: center; color: #9ca3af; font-size: 13px; padding-bottom: 40px; }
+    .svc span { color: var(--muted); font-size: 14px; }
+    .info { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; color: var(--muted); }
+    .info div b { display: block; color: var(--text); margin-bottom: 2px; }
+    @media (max-width: 640px) {
+      header { padding: 44px 16px 56px; }
+      header p { font-size: 16px; }
+      .card { padding: 16px; }
+    }
+    footer { text-align: center; color: var(--muted); font-size: 13px; padding-bottom: 40px; }
   </style>
 </head>
 <body>
-  <div class="banner">Demo website: the chat assistant in the bottom-right corner is the product. Try it!</div>
+  <div class="banner"><span>Demo website: the chat assistant in the bottom-right corner is the product. Try it!</span><button type="button" id="themeToggle"></button></div>
   <header>
     <h1 id="name">Loading…</h1>
     <p id="tagline"></p>
@@ -39,6 +54,18 @@
   <footer>Sample business page · Marketing agent demo</footer>
 
   <script>
+    const toggle = document.getElementById('themeToggle');
+    const THEMES = { system: '🖥️ System', dark: '🌙 Dark', light: '☀️ Light' };
+    const NEXT_THEME = { system: 'dark', dark: 'light', light: 'system' };
+    const paint = () => (toggle.textContent = THEMES[document.documentElement.dataset.theme] || THEMES.system);
+    toggle.addEventListener('click', () => {
+      const next = NEXT_THEME[document.documentElement.dataset.theme] || 'dark';
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem('ma-theme', next); } catch {}
+      paint();
+    });
+    paint();
+
     const id = location.pathname.split('/').filter(Boolean).pop();
     const el = (tag, text) => { const e = document.createElement(tag); if (text) e.textContent = text; return e; };
 

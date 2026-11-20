@@ -23,7 +23,7 @@
   }
 
   const host = document.createElement('div');
-  host.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:2147483000;';
+  host.style.cssText = 'position:fixed;right:max(12px, env(safe-area-inset-right));bottom:max(12px, env(safe-area-inset-bottom));z-index:2147483000;';
   document.body.appendChild(host);
   const root = host.attachShadow({ mode: 'open' }); // keeps our styles separate from the client's site
 
@@ -32,7 +32,7 @@
       :host { all: initial; }
       * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
       .bubble { width: 60px; height: 60px; border-radius: 50%; border: 0; cursor: pointer; color: #fff;
-        background: var(--brand); box-shadow: 0 8px 24px rgba(0,0,0,.25); display: grid; place-items: center; margin-left: auto; }
+        background: var(--brand); box-shadow: 0 8px 24px rgba(0,0,0,.3), 0 0 0 2px rgba(255,255,255,.9); display: grid; place-items: center; margin-left: auto; }
       .bubble svg { width: 28px; height: 28px; }
       .panel { display: none; flex-direction: column; width: min(370px, calc(100vw - 40px)); height: min(540px, calc(100vh - 110px));
         background: #fff; color: #111; border-radius: 16px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,.28); margin-bottom: 12px; }
@@ -55,6 +55,12 @@
       form button { border: 0; border-radius: 999px; padding: 0 16px; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer; }
       form button:disabled { opacity: .5; cursor: default; }
       .foot { font-size: 11px; color: #9ca3af; text-align: center; padding: 0 0 8px; background: #fff; }
+      @media (max-width: 480px) {
+        .panel { width: calc(100vw - 24px); height: calc(100dvh - 96px); border-radius: 14px; }
+        input { font-size: 16px; } /* prevents iPhone auto-zoom on focus */
+        .msg { max-width: 88%; font-size: 15px; }
+        .bubble { width: 56px; height: 56px; }
+      }
     </style>
     <div class="panel" role="dialog" aria-label="Chat">
       <div class="head">
