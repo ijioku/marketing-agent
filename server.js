@@ -206,7 +206,11 @@ button,.btn{display:block;width:100%;text-align:center;background:var(--brand);c
 const referralLimit = rateLimiter({ windowMs: 15 * 60_000, max: 20 });
 app.use('/r', express.urlencoded({ extended: false, limit: '4kb' }));
 
+// ?preview=1 = the owner opened it from the dashboard: show a way back.
+const previewBar = (on) => (on ? '<p class="muted" style="margin:0 0 14px">👀 Preview: this is what your customer\'s friend sees. <a href="/admin#leads">← Back to dashboard</a></p>' : '');
+
 app.get('/r/:code', (req, res) => {
+  const preview = req.query.preview === '1';
   const referrer = getContactByReferralCode(req.params.code);
   const biz = referrer && getBusiness(referrer.businessId);
   if (!biz) return res.status(404).send(page('Invite not found', '<h2>Invite link not found</h2><p>Please check the link and try again.</p>'));
@@ -214,14 +218,14 @@ app.get('/r/:code', (req, res) => {
   res.send(
     invitePage(biz, referrer, {
       title: `${referrer.firstName || 'A friend'} invited you to ${biz.name}`,
-      body: `<div class="offer">🎁 ${escapeHtml(biz.referralOffer || 'A special welcome offer')}</div>
+      body: `${previewBar(preview)}<div class="offer">🎁 ${escapeHtml(biz.referralOffer || 'A special welcome offer')}</div>
 <p>${escapeHtml(biz.tagline || '')}</p>
 ${services ? `<p class="muted">${services}</p>` : ''}
 <form method="post" action="/r/${escapeHtml(referrer.referralCode)}">
 <label for="name">Your name</label><input id="name" name="name" required maxlength="80" autocomplete="name">
 <label for="phone">Phone or WhatsApp number</label><input id="phone" name="phone" maxlength="40" autocomplete="tel" inputmode="tel">
 <label for="email">Email <span class="muted">(optional if you gave a phone)</span></label><input id="email" name="email" type="email" maxlength="120" autocomplete="email">
-<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">${preview ? '<input type="hidden" name="preview" value="1">' : ''}
 <button>Claim my offer</button>
 <p class="muted">${escapeHtml(biz.name)} will contact you to book. Your details are only shared with them.</p>
 </form>`,
@@ -235,7 +239,8 @@ app.post('/r/:code', (req, res) => {
   if (!biz) return res.status(404).send(page('Invite not found', '<h2>Invite link not found</h2>'));
   if (!referralLimit(req.ip).allowed) return res.status(429).send(page('Slow down', '<h2>Too many requests</h2><p>Please try again later.</p>'));
 
-  const { name = '', phone = '', email = '', website = '' } = req.body || {};
+  const { name = '', phone = '', email = '', website = '', preview = '' } = req.body || {};
+  const isPreview = preview === '1';
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
   const validPhone = String(phone).replace(/\D/g, '').length >= 7;
   // "website" is an invisible field: humans leave it empty, spam bots fill it in.
@@ -246,7 +251,7 @@ app.post('/r/:code', (req, res) => {
     return res.status(400).send(
       invitePage(biz, referrer, {
         title: 'Please check your details',
-        body: `<p class="err">Please enter your name and a phone number or email.</p><a class="btn" href="/r/${escapeHtml(referrer.referralCode)}">Go back</a>`,
+        body: `<p class="err">Please enter your name and a phone number or email.</p><a class="btn" href="/r/${escapeHtml(referrer.referralCode)}${isPreview ? '?preview=1' : ''}">Go back</a>`,
       })
     );
   }
@@ -254,7 +259,8 @@ app.post('/r/:code', (req, res) => {
     invitePage(biz, referrer, {
       title: 'Offer claimed',
       body: `<h2 style="margin-top:0">You're in! 🎉</h2><p>${escapeHtml(biz.name)} has your details and will contact you to book. Your offer: <b>${escapeHtml(biz.referralOffer || 'welcome offer')}</b>.</p>
-${/^https?:\/\//i.test(biz.bookingLink || '') ? `<a class="btn" href="${escapeHtml(biz.bookingLink)}" rel="noopener">Book now</a>` : ''}`,
+${/^https?:\/\//i.test(biz.bookingLink || '') ? `<a class="btn" href="${escapeHtml(biz.bookingLink)}" rel="noopener">Book now</a>` : ''}
+${isPreview ? '<a class="btn" href="/admin#leads" style="background:transparent;color:var(--text);border:1px solid var(--line)">← Back to dashboard: see the new inquiry</a>' : ''}`,
     })
   );
 });

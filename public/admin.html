@@ -95,6 +95,7 @@
     #login { max-width: 360px; margin: 80px auto; }
     #login .top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
     #login .top h2 { margin: 0; }
+    td .source { font-size: 13px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
     .pw-wrap { position: relative; }
     .pw-wrap input { padding-right: 76px; }
     .pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 32px; border: 0; background: var(--btn2); color: var(--text); border-radius: 6px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
@@ -198,7 +199,7 @@
           <h2>New inquiries</h2>
           <p class="muted" style="margin-top:-6px">People who left their details through your website chat, WhatsApp, Instagram or a customer's invite link. Contact them quickly! ⏰ means they've waited too long.</p>
           <div class="table-wrap"><table>
-            <thead><tr><th>When</th><th>Name</th><th>Phone</th><th>Email</th><th>Interested in</th><th>Came from</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Name &amp; where they came from</th><th>Interested in</th><th>Phone</th><th>Email</th><th>When</th><th>Status</th><th></th></tr></thead>
             <tbody id="leadRows"></tbody>
           </table></div>
         </div>
@@ -465,6 +466,9 @@
         STATUS = status;
         setupCampaignForm();
         await loadBusinesses();
+        // e.g. coming back from the invite preview lands on /admin#leads
+        const tab = location.hash.slice(1);
+        if (tab) document.querySelector(`#tabs button[data-tab="${tab.replace(/[^a-z]/g, '')}"]`)?.click();
       } catch {
         // Not signed in yet: stay on the login screen.
       }
@@ -474,12 +478,18 @@
       const list = await api('/businesses');
       const sel = $('#bizSelect');
       sel.replaceChildren(...list.map((b) => { const o = el('option', b.name); o.value = b.id; return o; }));
-      bizId = selectId || bizId || list[0]?.id || '';
+      let saved = '';
+      try { saved = localStorage.getItem('ma-biz') || ''; } catch {}
+      bizId = selectId || bizId || (list.some((b) => b.id === saved) ? saved : '') || list[0]?.id || '';
       sel.value = bizId;
       await refresh();
     }
 
-    $('#bizSelect').addEventListener('change', (e) => { bizId = e.target.value; refresh(); });
+    $('#bizSelect').addEventListener('change', (e) => {
+      bizId = e.target.value;
+      try { localStorage.setItem('ma-biz', bizId); } catch {}
+      refresh();
+    });
 
     async function refresh() {
       if (!bizId) return;
@@ -518,11 +528,13 @@
       const rows = $('#leadRows');
       if (!leads.length) {
         const td = el('td', 'No inquiries yet. They appear here when someone leaves their details in your website chat, WhatsApp, Instagram or a customer\'s invite link.', 'empty');
-        td.colSpan = 8; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
+        td.colSpan = 7; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
       }
       rows.replaceChildren(...leads.map((l) => {
         const tr = el('tr');
-        tr.append(el('td', fmt(l.createdAt)), el('td', l.name || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', l.interest || '—'), el('td', SOURCE_LABEL(l)));
+        const who = el('td');
+        who.append(el('b', l.name || '—'), el('div', SOURCE_LABEL(l), 'source'));
+        tr.append(who, el('td', l.interest || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', fmt(l.createdAt)));
         const sel = document.createElement('select');
         for (const s of ['new', 'contacted', 'booked', 'lost']) { const o = el('option', s); o.value = s; sel.append(o); }
         sel.value = l.status;
@@ -866,9 +878,7 @@
         if (m.status !== 'skipped') actions.append(act("Don't send", 'skipped'));
         if (m.referralCode) {
           const view = el('a', '👀 Preview invite page', 'btn secondary');
-          view.href = `/r/${m.referralCode}`;
-          view.target = '_blank';
-          view.rel = 'noopener';
+          view.href = `/r/${m.referralCode}?preview=1`; // same tab; the page shows a "Back to dashboard" button
           actions.append(view);
         }
         actions.append(act('Save edits', undefined));
