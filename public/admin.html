@@ -3,7 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Agent Dashboard</title>
+  <title>Marketing Agent</title>
+  <!-- Installable as a phone/desktop app (PWA) -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <meta name="theme-color" content="#0b0f17" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Marketing" />
   <script>
     // Theme follows the device (light/dark) unless the user picks one with the switch.
     (function () {
@@ -179,15 +186,27 @@
           <div class="stat"><b id="sLeads">0</b><span>New people interested</span></div>
           <div class="stat"><b id="sNew">0</b><span>Not contacted yet</span></div>
           <div class="stat"><b id="sBooked">0</b><span>Booked</span></div>
-          <div class="stat"><b id="sChats">0</b><span>Website chats</span></div>
+          <div class="stat"><b id="sFollow">0</b><span>Waiting for a follow-up</span></div>
         </div>
         <div class="card">
           <h2>New inquiries</h2>
-          <p class="muted" style="margin-top:-6px">People who left their phone or email, from your website chat or a customer's invite link. Contact them quickly!</p>
+          <p class="muted" style="margin-top:-6px">People who left their details through your website chat, WhatsApp, Instagram or a customer's invite link. Contact them quickly! ⏰ means they've waited too long.</p>
           <div class="table-wrap"><table>
-            <thead><tr><th>When</th><th>Name</th><th>Phone</th><th>Email</th><th>Interested in</th><th>Came from</th><th>Status</th></tr></thead>
+            <thead><tr><th>When</th><th>Name</th><th>Phone</th><th>Email</th><th>Interested in</th><th>Came from</th><th>Status</th><th></th></tr></thead>
             <tbody id="leadRows"></tbody>
           </table></div>
+        </div>
+        <div class="card hidden" id="followCard">
+          <h2 id="followTitle">Follow up</h2>
+          <p class="muted" style="margin-top:-6px">A friendly nudge, written for you. Edit it if you like, then send.</p>
+          <label for="followSubject">Email subject</label><input id="followSubject" />
+          <label for="followText">Message</label><textarea id="followText" style="min-height:130px"></textarea>
+          <div class="row">
+            <button class="btn" id="followEmail">Send by email</button>
+            <a class="btn" id="followWa" target="_blank" rel="noopener" style="background:#16a34a">Open in WhatsApp</a>
+            <button class="btn secondary" id="followClose">Close</button>
+          </div>
+          <div id="followMsg" class="msg"></div>
         </div>
       </section>
 
@@ -341,6 +360,12 @@
           <div class="row" style="margin-top:0"><a class="btn" id="demoLink" target="_blank" rel="noopener">Open demo page</a></div>
           <p style="color:var(--muted)">Note: <code style="display:inline;padding:2px 6px">localhost</code> only works on this computer. To install on a real client site, the server has to be deployed online first.</p>
         </div>
+        <div class="card">
+          <h2>WhatsApp & Instagram auto-replies</h2>
+          <p>The same assistant can answer customers who message the business on <b>WhatsApp</b> or <b>Instagram</b>, day and night, and add them to New inquiries.</p>
+          <div id="socialStatus" class="chips" style="margin-bottom:10px"></div>
+          <p class="muted">Setup needs a free Meta developer account, the business's WhatsApp Business number and/or Instagram professional account, and this app deployed online. Step-by-step instructions are in the README ("WhatsApp & Instagram setup").</p>
+        </div>
       </section>
     </main>
   </div>
@@ -446,6 +471,15 @@
       const origin = location.origin;
       $('#snippet').textContent = `<script src="${origin}/widget.js" data-business="${bizId}" defer><\/script>`;
       $('#demoLink').href = `/demo/${bizId}`;
+      const so = STATUS?.social;
+      if (so) {
+        const chip = (txt, cls) => el('span', txt, `chip ${cls}`);
+        $('#socialStatus').replaceChildren(
+          chip(so.webhookReady ? 'Webhook: ready' : 'Webhook: not set up', so.webhookReady ? 'sent' : 'skipped'),
+          chip(so.whatsapp.numbers ? `WhatsApp: ${so.whatsapp.numbers} number(s)${so.whatsapp.live ? '' : ' (test mode)'}` : 'WhatsApp: not connected', so.whatsapp.numbers ? 'approved' : 'skipped'),
+          chip(so.instagram.accounts ? `Instagram: ${so.instagram.accounts} account(s)${so.instagram.live ? '' : ' (test mode)'}` : 'Instagram: not connected', so.instagram.accounts ? 'approved' : 'skipped')
+        );
+      }
     }
 
     // ---------- Tabs ----------
@@ -463,34 +497,110 @@
       $('#sLeads').textContent = leads.length;
       $('#sNew').textContent = leads.filter((l) => l.status === 'new').length;
       $('#sBooked').textContent = leads.filter((l) => l.status === 'booked').length;
+      $('#sFollow').textContent = leads.filter(isWaiting).length;
       const rows = $('#leadRows');
       if (!leads.length) {
-        const td = el('td', 'No inquiries yet. They appear here when someone leaves their details in your website chat or through a customer\'s invite link.', 'empty');
-        td.colSpan = 7; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
+        const td = el('td', 'No inquiries yet. They appear here when someone leaves their details in your website chat, WhatsApp, Instagram or a customer\'s invite link.', 'empty');
+        td.colSpan = 8; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
       }
       rows.replaceChildren(...leads.map((l) => {
         const tr = el('tr');
-        tr.append(el('td', fmt(l.createdAt)), el('td', l.name || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', l.interest || '—'), el('td', l.source === 'referral' ? `🎁 Invited by ${l.referredByName || 'a customer'}` : '💬 Website chat'));
+        tr.append(el('td', fmt(l.createdAt)), el('td', l.name || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', l.interest || '—'), el('td', SOURCE_LABEL(l)));
         const sel = document.createElement('select');
         for (const s of ['new', 'contacted', 'booked', 'lost']) { const o = el('option', s); o.value = s; sel.append(o); }
         sel.value = l.status;
         sel.addEventListener('change', async () => { await api(`/leads/${l.id}`, { method: 'PATCH', body: JSON.stringify({ status: sel.value }) }); loadLeads(); });
         const td = el('td'); td.append(sel); tr.append(td);
+        const waiting = isWaiting(l);
+        const fu = el('button', waiting ? '⏰ Follow up' : 'Follow up', 'btn secondary');
+        fu.addEventListener('click', () => openFollowUp(l));
+        const td2 = el('td'); td2.append(fu); tr.append(td2);
         return tr;
       }));
     }
 
+    function SOURCE_LABEL(l) {
+      if (l.source === 'referral') return `🎁 Invited by ${l.referredByName || 'a customer'}`;
+      if (l.source === 'whatsapp') return '🟢 WhatsApp';
+      if (l.source === 'instagram') return '📸 Instagram';
+      return '💬 Website chat';
+    }
+
+    // "Waiting": still marked new, never followed up, and older than the follow-up window.
+    function isWaiting(l) {
+      const hours = STATUS?.followUpAfterHours || 24;
+      return l.status === 'new' && !l.followedUpAt && Date.now() - Date.parse(l.createdAt) > hours * 3600_000;
+    }
+
+    let followLead = null;
+    async function openFollowUp(l) {
+      followLead = l;
+      const card = $('#followCard');
+      card.classList.remove('hidden');
+      $('#followTitle').textContent = `Follow up with ${l.name || l.phone || l.email}`;
+      $('#followText').value = 'Writing a message…';
+      $('#followSubject').value = '';
+      $('#followMsg').textContent = '';
+      $('#followEmail').disabled = true;
+      $('#followWa').classList.add('hidden');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try {
+        const d = await api(`/leads/${l.id}/follow-up/draft`, { method: 'POST', body: '{}' });
+        if (followLead !== l) return;
+        $('#followSubject').value = d.emailSubject || '';
+        $('#followText').value = d.canEmail ? d.emailBody : d.sms;
+        $('#followEmail').disabled = !d.canEmail;
+        $('#followEmail').title = d.canEmail ? '' : 'No email address for this person';
+        if (d.whatsappUrl) {
+          const wa = $('#followWa');
+          wa.classList.remove('hidden');
+          wa.dataset.base = d.whatsappUrl.split('?')[0];
+          wa.dataset.sms = d.sms;
+        }
+      } catch (err) {
+        $('#followText').value = '';
+        $('#followMsg').className = 'msg err';
+        $('#followMsg').textContent = err.message;
+      }
+    }
+
+    $('#followClose').addEventListener('click', () => { $('#followCard').classList.add('hidden'); followLead = null; });
+
+    $('#followEmail').addEventListener('click', async () => {
+      if (!followLead) return;
+      const msg = $('#followMsg');
+      try {
+        await api(`/leads/${followLead.id}/follow-up/send`, { method: 'POST', body: JSON.stringify({ channel: 'email', subject: $('#followSubject').value, text: $('#followText').value }) });
+        msg.className = 'msg ok';
+        msg.textContent = STATUS.email.live ? 'Sent ✓ Marked as contacted.' : 'Saved in test mode ✓ (nothing was really emailed). Marked as contacted.';
+        loadLeads();
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+    });
+
+    // WhatsApp: open the owner's own WhatsApp with the message typed in, then record it.
+    $('#followWa').addEventListener('click', async (e) => {
+      const wa = e.currentTarget;
+      wa.href = `${wa.dataset.base}?text=${encodeURIComponent($('#followText').value || wa.dataset.sms || '')}`;
+      if (!followLead) return;
+      try {
+        await api(`/leads/${followLead.id}/follow-up/send`, { method: 'POST', body: JSON.stringify({ channel: 'whatsapp' }) });
+        $('#followMsg').className = 'msg ok';
+        $('#followMsg').textContent = 'WhatsApp opened ✓ Marked as contacted.';
+        loadLeads();
+      } catch {}
+    });
+
     // ---------- Conversations ----------
     async function loadConvos() {
       const convos = await api(`/businesses/${bizId}/conversations`);
-      $('#sChats').textContent = convos.length;
       const box = $('#convos');
       if (!convos.length) { box.replaceChildren(el('div', 'No conversations yet.', 'empty')); return; }
       box.replaceChildren(...convos.map((c) => {
         const d = el('details', null, 'convo');
         const s = el('summary');
         const first = c.messages.find((m) => m.role === 'user')?.content || '';
-        s.append(el('b', first.slice(0, 70) || '(empty)'), el('span', `${c.messages.length} messages · ${fmt(c.updatedAt)}`));
+        const ch = { whatsapp: '🟢 WhatsApp', instagram: '📸 Instagram' }[c.channel] || '💬 Website';
+        s.append(el('b', first.slice(0, 70) || '(empty)'), el('span', `${ch} · ${c.messages.length} messages · ${fmt(c.updatedAt)}`));
         const lines = el('div', null, 'lines');
         for (const m of c.messages) lines.append(el('div', m.content, `line ${m.role}`));
         d.append(s, lines);
@@ -770,6 +880,9 @@
     });
 
     start(); // if the session cookie is still valid, go straight to the dashboard
+
+    // Register the service worker so phones offer "Add to Home Screen" / "Install app".
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
   </script>
 </body>
 </html>
