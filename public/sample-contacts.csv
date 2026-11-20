@@ -1,6 +1,11 @@
 First Name,Last Name,Email,Phone,Last Visit,Last Service,Visits,Tags,Consent,Notes
-Marcus,Reid,marcus.reid@example.com,555-010-1111,2026-07-02,Skin fade,9,regular,yes,
-Tanya,Brooks,tanya.b@example.com,555-010-2222,2026-10-28,Kids cut (under 12),4,family,yes,"Brings her son, prefers Saturdays"
-Devon,Lee,devon.lee@example.com,,2026-04-15,Haircut + beard,2,,yes,
-Sam,Okafor,sam.okafor@example.com,555-010-4444,2026-09-10,Beard trim & line-up,6,regular,no,Asked not to receive marketing
-Priya,Nair,priya.nair@example.com,,2026-05-21,Classic haircut,1,,yes,
+Adaeze,Okonkwo,adaeze.okonkwo@example.com,+234 800 000 0101,2026-07-12,Knotless braids (mid-back),8,regular,yes,Prefers Saturday mornings
+Funmilayo,Adeyemi,funmi.adeyemi@example.com,+234 800 000 0102,2026-11-08,Gel manicure,5,regular,yes,
+Chiamaka,Eze,chiamaka.eze@example.com,,2026-05-30,Glow facial,2,,yes,
+Ngozi,Bello,ngozi.bello@example.com,+234 800 000 0104,2026-08-21,Wig install & styling,6,regular,yes,
+Temitope,Lawal,temi.lawal@example.com,+234 800 000 0105,2026-04-03,Spa pedicure,1,,yes,
+Halima,Musa,halima.musa@example.com,+234 800 000 0106,2026-09-02,"Wash, treatment & blow-dry",3,,no,Asked not to receive promotions
+Kemi,Ogunleye,kemi.ogunleye@example.com,+234 800 000 0107,2026-06-18,Cornrows / stitch braids,4,,yes,
+Blessing,Okafor,blessing.okafor@example.com,,2026-10-30,Knotless braids (mid-back),9,regular,yes,
+Zainab,Abubakar,zainab.abubakar@example.com,+234 800 000 0109,2026-03-14,Glow facial,2,,yes,
+Ifeoma,Nwosu,ifeoma.nwosu@example.com,+234 800 000 0110,2026-08-05,Spa pedicure,7,regular,yes,
