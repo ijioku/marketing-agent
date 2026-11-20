@@ -9,8 +9,10 @@ Most customers don't leave because they're unhappy. They just forget. Marketing 
 ## Features
 
 - **Personal win-back campaigns.** Pick a goal ("bring back clients who haven't visited in 90 days") and the AI writes a different email for every customer, using their name and usual service. Goals: win-back, promotions, review requests, thank-yous to regulars, and partnership pitches to other local businesses.
+- **Referral campaigns that bring in new customers.** Happy customers get a personal invite link (plus a one-tap WhatsApp share). Their friend opens it, sees the offer ("you both get 10% off"), and leaves their details. The business gets a new inquiry tagged *"invited by Adaeze"*, and the dashboard counts how many friends each customer brought in.
+- **Instant new-customer alerts.** The owner is emailed the moment someone leaves their details, from the website chat or an invite link, so they can reply while the person is still interested.
 - **Owner approves everything.** Every email lands in a review queue to edit, approve or skip. Nothing is sent automatically.
-- **Website chat assistant.** One line of code adds a chat bubble to any website (WordPress, Wix, Shopify…). It answers prices, hours and FAQs from the business profile, and saves visitors who leave a phone number or email as leads.
+- **Website chat assistant.** One line of code adds a chat bubble to any website (WordPress, Wix, Shopify…). It answers prices, hours and FAQs from the business profile, and saves visitors who leave a phone number or email as new inquiries.
 - **One engine, any business.** Each business is a simple profile: services, prices (any currency), hours, FAQs, offers and tone of voice. The AI only uses what's in the profile.
 - **Personal, never creepy.** The AI only sees a short list of friendly facts: first name, last service, and a *vague* "a few months" instead of exact dates. Private notes and phone numbers never reach the AI.
 - **Works everywhere.** Responsive on phones, tablets and desktop, with light, dark and system themes.
@@ -98,8 +100,9 @@ All settings live in `.env` (see `.env.example`):
 ## Roadmap
 
 - [ ] WhatsApp campaigns and chat (WhatsApp Business API)
+- [ ] Instagram & WhatsApp auto-replies for new customer questions
 - [ ] Results page: replies and bookings per campaign
-- [ ] Automatic follow-ups
+- [ ] Automatic follow-ups for new inquiries who haven't booked
 - [ ] Simpler guided onboarding for business owners
 - [ ] PostgreSQL storage and one-click deployment
 - [ ] Installable mobile app (PWA)
