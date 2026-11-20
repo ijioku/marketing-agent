@@ -223,7 +223,12 @@
           if (wa) { const w = el('a', 'Chat on WhatsApp', 'wa'); w.href = `https://wa.me/${wa}`; w.target = '_blank'; w.rel = 'noopener'; v.append(el('br'), w); }
         });
         if (!info.children.length) info.closest('section').remove();
-        $('foot').textContent = `© ${new Date().getFullYear()} ${b.name}`;
+        $('foot').textContent = `© ${new Date().getFullYear()} ${b.name} · Chat assistant by Marketing Agent · `;
+        const privacy = document.createElement('a');
+        privacy.href = '/privacy';
+        privacy.textContent = 'Privacy';
+        privacy.style.color = 'inherit';
+        $('foot').append(privacy);
 
         const w = document.createElement('script');
         w.src = '/widget.js';

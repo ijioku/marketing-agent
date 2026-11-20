@@ -3,6 +3,7 @@ import path from 'node:path';
 import { getBusiness, listBusinesses, saveBusiness, publicProfile, isValidId } from './lib/businesses.js';
 import { initStore, getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts, getLead, markFollowedUp } from './lib/store.js';
 import { chatReply, draftMessage, draftKinds, aiInfo, CAMPAIGN_GOALS } from './lib/ai.js';
+import { privacyBody, termsBody } from './lib/legal.js';
 import { importContacts, listContacts, deleteContact, deleteContacts, unsubscribeByToken, getContactByReferralCode, backfillReferralCodes } from './lib/contacts.js';
 import { previewAudience, createCampaign, listCampaigns, getCampaign, getMessage, updateMessage, approveAll, startSending } from './lib/campaigns.js';
 import { mailerInfo, sendEmail } from './lib/mailer.js';
@@ -249,7 +250,7 @@ ${services ? `<p class="muted">${services}</p>` : ''}
 <label for="email">Email <span class="muted">(optional if you gave a phone)</span></label><input id="email" name="email" type="email" maxlength="120" autocomplete="email">
 <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">${preview ? '<input type="hidden" name="preview" value="1">' : ''}
 <button>Claim my offer</button>
-<p class="muted">${escapeHtml(biz.name)} will contact you to book. Your details are only shared with them.</p>
+<p class="muted">${escapeHtml(biz.name)} will contact you to book. Your details are only shared with them. <a href="/privacy" style="color:inherit">Privacy</a></p>
 </form>`,
     })
   );
@@ -301,6 +302,36 @@ app.get('/admin', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'admin.html')
 app.get('/', (req, res) => res.redirect('/admin'));
 // Hosting platforms ping this to check the app is alive.
 app.get('/healthz', (req, res) => res.json({ ok: true }));
+
+// ---------- Privacy policy and terms ----------
+
+const SUPPORT_EMAIL = /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(process.env.SUPPORT_EMAIL || '') ? process.env.SUPPORT_EMAIL : '';
+const docPage = (title, body) => `${pageHead(title)}
+body{display:block;padding:0}
+.doc{max-width:700px;margin:0 auto;padding:28px 16px 64px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:28px}
+.bar a.home{color:var(--text);font-weight:700;text-decoration:none;letter-spacing:-.02em}
+.sw{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card)}
+.sw button{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.sw button[aria-pressed=true]{background:var(--text);color:var(--bg)}
+article{background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--line);border-radius:28px;padding:clamp(22px,5vw,44px)}
+article h1{font-size:clamp(32px,6vw,46px);line-height:1.05;margin:0 0 6px;font-weight:750}
+article h2{font-size:21px;margin:34px 0 8px;font-weight:700}
+article p,article li{color:var(--text);font-size:16px}article ul{padding-left:20px}article li{margin:6px 0}
+article a{color:inherit;text-decoration-thickness:1px;text-underline-offset:3px}
+.meta{color:var(--muted);margin:0 0 22px}
+.links{margin-top:22px;text-align:center;color:var(--muted);font-size:14px}.links a{color:inherit;margin:0 8px}
+:focus-visible{outline:2px solid #6d5efc;outline-offset:2px}
+</style></head><body><div class="doc">
+<div class="bar"><a class="home" href="/admin">Marketing Agent</a>
+<div class="sw" role="group" aria-label="Theme"><button data-t="system">System</button><button data-t="dark">Dark</button><button data-t="light">Light</button></div></div>
+<article>${body}</article>
+<p class="links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin">Sign in</a></p></div>
+<script>(function(){var r=document.documentElement,b=document.querySelectorAll('.sw button');function s(t){r.dataset.theme=t;try{localStorage.setItem('ma-theme',t)}catch(e){}b.forEach(function(x){x.setAttribute('aria-pressed',String(x.dataset.t===t))})}b.forEach(function(x){x.onclick=function(){s(x.dataset.t)}});s(r.dataset.theme||'system')})()</script>
+${motionBackground(['#6d5efc', '#12b5a5', '#f4b13e', '#ff6b3d'])}</body></html>`;
+
+app.get('/privacy', (req, res) => res.send(docPage('Privacy policy · Marketing Agent', privacyBody({ supportEmail: SUPPORT_EMAIL }))));
+app.get('/terms', (req, res) => res.send(docPage('Terms of service · Marketing Agent', termsBody({ supportEmail: SUPPORT_EMAIL }))));
 
 // Unsubscribe link in every campaign email. GET shows a confirm button
 // (so link scanners can't unsubscribe people by accident); POST does it,
