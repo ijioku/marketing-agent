@@ -164,7 +164,7 @@
     </header>
     <div id="weakPw" class="banner-note test hidden" style="margin:12px 16px 0">⚠️ You're using a weak dashboard password. Set a strong ADMIN_PASSWORD in .env before putting this online.</div>
     <nav id="tabs">
-      <button data-tab="leads" class="active">Leads</button>
+      <button data-tab="leads" class="active">New inquiries</button>
       <button data-tab="chats">Conversations</button>
       <button data-tab="campaigns">Email campaigns</button>
       <button data-tab="contacts">Contacts</button>
@@ -176,15 +176,16 @@
       <!-- LEADS -->
       <section data-panel="leads">
         <div class="stats">
-          <div class="stat"><b id="sLeads">0</b><span>Leads captured</span></div>
-          <div class="stat"><b id="sNew">0</b><span>New, not contacted</span></div>
+          <div class="stat"><b id="sLeads">0</b><span>New people interested</span></div>
+          <div class="stat"><b id="sNew">0</b><span>Not contacted yet</span></div>
           <div class="stat"><b id="sBooked">0</b><span>Booked</span></div>
-          <div class="stat"><b id="sChats">0</b><span>Conversations</span></div>
+          <div class="stat"><b id="sChats">0</b><span>Website chats</span></div>
         </div>
         <div class="card">
-          <h2>Leads</h2>
+          <h2>New inquiries</h2>
+          <p class="muted" style="margin-top:-6px">People who left their phone or email, from your website chat or a customer's invite link. Contact them quickly!</p>
           <div class="table-wrap"><table>
-            <thead><tr><th>When</th><th>Name</th><th>Phone</th><th>Email</th><th>Interested in</th><th>Status</th></tr></thead>
+            <thead><tr><th>When</th><th>Name</th><th>Phone</th><th>Email</th><th>Interested in</th><th>Came from</th><th>Status</th></tr></thead>
             <tbody id="leadRows"></tbody>
           </table></div>
         </div>
@@ -203,7 +204,7 @@
             <h2>New email campaign</h2>
             <p class="muted" style="margin-top:0">The AI writes a personal email for each customer using only friendly details (first name, usual service, roughly how long it's been). You review every email before anything is sent.</p>
             <div class="grid2">
-              <div><label for="cGoal">Goal</label><select id="cGoal" class="f"></select></div>
+              <div><label for="cGoal">Goal</label><select id="cGoal" class="f"></select><div id="cGoalHint" class="muted" style="margin-top:6px"></div></div>
               <div><label for="cName">Campaign name <small>(optional)</small></label><input id="cName" placeholder="e.g. December win-back" /></div>
               <div>
                 <label for="cInactive">Who gets it?</label>
@@ -251,7 +252,7 @@
         <div class="card">
           <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Contacts <span id="contactCount" class="muted"></span></h2><button class="btn secondary" id="csvClear">Delete all contacts</button></div>
           <div class="table-wrap"><table>
-            <thead><tr><th>Name</th><th>Email</th><th>Last visit</th><th>Last service</th><th>Tags</th><th>Can email?</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Last visit</th><th>Last service</th><th>Tags</th><th>Can email?</th><th>Friends invited</th><th>Invite link</th></tr></thead>
             <tbody id="contactRows"></tbody>
           </table></div>
         </div>
@@ -313,6 +314,7 @@
             <label>Chat greeting</label><input name="greeting" />
             <label>Tone of voice</label><input name="tone" placeholder="friendly, casual, confident" />
             <label>Main goal for the agent</label><input name="goal" placeholder="Get visitors to book an appointment" />
+            <label>Referral offer <small>(what a customer and the friend they invite both get)</small></label><input name="referralOffer" placeholder="e.g. You and your friend both get 10% off" />
             <label>Services <small>one per line: Name | Price | Duration</small></label>
             <textarea name="services" placeholder="Knotless braids | ₦35,000 | 5 hrs"></textarea>
             <label>FAQs <small>one per line: Question | Answer</small></label>
@@ -463,12 +465,12 @@
       $('#sBooked').textContent = leads.filter((l) => l.status === 'booked').length;
       const rows = $('#leadRows');
       if (!leads.length) {
-        const td = el('td', 'No leads yet. Open the demo page and chat with the agent, leaving a name and phone number.', 'empty');
-        td.colSpan = 6; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
+        const td = el('td', 'No inquiries yet. They appear here when someone leaves their details in your website chat or through a customer\'s invite link.', 'empty');
+        td.colSpan = 7; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
       }
       rows.replaceChildren(...leads.map((l) => {
         const tr = el('tr');
-        tr.append(el('td', fmt(l.createdAt)), el('td', l.name || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', l.interest || '—'));
+        tr.append(el('td', fmt(l.createdAt)), el('td', l.name || '—'), el('td', l.phone || '—'), el('td', l.email || '—'), el('td', l.interest || '—'), el('td', l.source === 'referral' ? `🎁 Invited by ${l.referredByName || 'a customer'}` : '💬 Website chat'));
         const sel = document.createElement('select');
         for (const s of ['new', 'contacted', 'booked', 'lost']) { const o = el('option', s); o.value = s; sel.append(o); }
         sel.value = l.status;
@@ -531,7 +533,7 @@
 
     function fillForm(b) {
       $('#setupTitle').textContent = b.id ? `Business setup: ${b.name}` : 'Set up a new business';
-      for (const k of ['id', 'name', 'type', 'tagline', 'phone', 'email', 'address', 'hours', 'bookingLink', 'reviewLink', 'greeting', 'tone', 'goal']) form.elements[k].value = b[k] || '';
+      for (const k of ['id', 'name', 'type', 'tagline', 'phone', 'email', 'address', 'hours', 'bookingLink', 'reviewLink', 'greeting', 'tone', 'goal', 'referralOffer']) form.elements[k].value = b[k] || '';
       form.elements.brandColor.value = b.brandColor || '#2563eb';
       form.elements.services.value = joinLines(b.services, (s) => [s.name, s.price, s.duration].filter(Boolean).join(' | '));
       form.elements.faqs.value = joinLines(b.faqs, (f) => `${f.q} | ${f.a}`);
@@ -548,7 +550,7 @@
       const body = {
         id: f.id.value, name: f.name.value, type: f.type.value, tagline: f.tagline.value, brandColor: f.brandColor.value,
         phone: f.phone.value, email: f.email.value, address: f.address.value, hours: f.hours.value,
-        bookingLink: f.bookingLink.value, reviewLink: f.reviewLink.value, greeting: f.greeting.value, tone: f.tone.value, goal: f.goal.value,
+        bookingLink: f.bookingLink.value, reviewLink: f.reviewLink.value, greeting: f.greeting.value, tone: f.tone.value, goal: f.goal.value, referralOffer: f.referralOffer.value,
         services: splitLines(f.services.value).map((l) => { const [name, price, duration] = l.split('|').map((x) => x.trim()); return { name, price, duration }; }),
         faqs: splitLines(f.faqs.value).map((l) => { const i = l.indexOf('|'); return i < 0 ? null : { q: l.slice(0, i).trim(), a: l.slice(i + 1).trim() }; }).filter(Boolean),
         offers: splitLines(f.offers.value),
@@ -569,15 +571,24 @@
       const rows = $('#contactRows');
       if (!contacts.length) {
         const td = el('td', 'No contacts yet. Import a CSV above, or try the sample file.', 'empty');
-        td.colSpan = 6; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
+        td.colSpan = 8; const tr = el('tr'); tr.append(td); rows.replaceChildren(tr); return;
       }
       rows.replaceChildren(...contacts.map((c) => {
         const tr = el('tr');
         const ok = c.unsubscribed ? 'Unsubscribed' : c.consent ? 'Yes' : 'No consent';
         tr.append(
           el('td', [c.firstName, c.lastName].filter(Boolean).join(' ') || '—'), el('td', c.email),
-          el('td', c.lastVisit || '—'), el('td', c.lastService || '—'), el('td', (c.tags || []).join(', ') || '—'), el('td', ok)
+          el('td', c.lastVisit || '—'), el('td', c.lastService || '—'), el('td', (c.tags || []).join(', ') || '—'), el('td', ok), el('td', String(c.referrals || 0))
         );
+        const linkTd = el('td');
+        if (c.referralCode) {
+          const a = el('a', c.referralCode);
+          a.href = `/r/${c.referralCode}`;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          linkTd.append(a);
+        } else linkTd.textContent = '—';
+        tr.append(linkTd);
         return tr;
       }));
     }
@@ -606,6 +617,16 @@
     let pollTimer = null;
 
     function setupCampaignForm() {
+      const HINTS = {
+        win_back: 'Brings back customers who stopped coming. Tip: choose "Haven\'t visited in 90+ days".',
+        referral: 'Gets NEW customers: each happy customer gets a personal invite link (+ WhatsApp share button) to send friends. Tip: use the tag "regular".',
+        review_request: 'More good reviews help new people find and trust the business online.',
+        promo: 'Tell customers about an offer or news. Put the details in "Notes for the AI".',
+        thank_you: 'A simple thank-you to loyal customers. Builds loyalty.',
+        partnership: 'Pitch a nearby business to recommend each other. Brings new customers from their clients.',
+      };
+      $('#cGoal').onchange = () => ($('#cGoalHint').textContent = HINTS[$('#cGoal').value] || '');
+      setTimeout(() => $('#cGoal').onchange(), 0);
       $('#cGoal').replaceChildren(...Object.entries(STATUS.campaignGoals).map(([k, label]) => { const o = el('option', label); o.value = k; return o; }));
       const banner = $('#mailBanner');
       if (STATUS.email.live) { banner.className = 'banner-note live'; banner.textContent = `Live sending is ON (${STATUS.email.provider}). Approved emails go to real inboxes.`; }
@@ -716,6 +737,13 @@
         };
         if (m.status !== 'approved') actions.append(act('Approve', 'approved', 'btn'));
         if (m.status !== 'skipped') actions.append(act("Don't send", 'skipped'));
+        if (m.referralCode) {
+          const view = el('a', '👀 Preview invite page', 'btn secondary');
+          view.href = `/r/${m.referralCode}`;
+          view.target = '_blank';
+          view.rel = 'noopener';
+          actions.append(view);
+        }
         actions.append(act('Save edits', undefined));
         card.append(to, subj, el('div', null), body, actions);
         card.children[2].style.height = '8px';
