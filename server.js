@@ -23,13 +23,17 @@ import {
   rateLimiter,
   securityHeaders,
 } from './lib/security.js';
-import { authenticate, listLogins, getLogin, createLogin, setPassword, deleteLogin, checkCurrentPassword } from './lib/accounts.js';
+import { authenticate, listLogins, getLogin, createLogin, setPassword, deleteLogin, checkCurrentPassword, sessionUserForEmail, createResetToken, resetPasswordWithToken } from './lib/accounts.js';
+import { GOOGLE_CLIENT_ID, verifyGoogleCredential } from './lib/google.js';
 import { DEMO_ID, isDemoBusiness, resetDemo, ensureFreshDemo, demoActivity } from './lib/demo.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
 // The main admin signs in with this username (or an empty username) + ADMIN_PASSWORD.
 const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim().toLowerCase();
+// Optional: the main admin's own email, so they can also sign in with it (password or Google).
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+const APP_URL = (process.env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/+$/, '');
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const PUBLIC_DIR = path.join(import.meta.dirname, 'public');
 const FOLLOW_UP_AFTER_HOURS = Math.max(1, Number(process.env.FOLLOW_UP_AFTER_HOURS) || 24);
@@ -191,21 +195,34 @@ function notifyOwner(biz, lead) {
 
 const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+// Shared look for the small server-made pages (invite, unsubscribe): same font, light/dark
+// theme (following the saved System/Dark/Light choice) and the interactive dot background.
+const DARK_TOKENS = 'color-scheme:dark;--bg:#0d0e11;--card:#16181d;--text:#eceef2;--muted:#9aa1ad;--line:#262a31;--dot:rgba(236,238,242,.2)';
+const pageHead = (title) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(title)}</title><link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('ma-theme')||'system'}catch(e){document.documentElement.dataset.theme='system'}</script>
+<style>
+:root{color-scheme:light;--bg:#fff;--card:#fff;--text:#1b1c1f;--muted:#5e6470;--line:#e6e8ec;--dot:rgba(27,28,31,.16)}
+:root[data-theme=dark]{${DARK_TOKENS}}
+@media (prefers-color-scheme:dark){:root[data-theme=system]{${DARK_TOKENS}}}
+*{box-sizing:border-box}body{margin:0;font-family:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:16px;line-height:1.5}
+#field{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+h1,h2{letter-spacing:-.03em}`;
+const motionBackground = (colors) =>
+  `<canvas id="field" aria-hidden="true"></canvas><script src="/motion.js"></script><script>window.MotionField&&MotionField.start(document.getElementById('field'),{density:5200,colors:${JSON.stringify(colors)}})</script>`;
+
 function invitePage(biz, referrer, { body, title }) {
   const color = /^#[0-9a-fA-F]{6}$/.test(biz.brandColor || '') ? biz.brandColor : '#2563eb';
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(title)}</title>
-<style>
-:root{color-scheme:light dark;--bg:#f5f6f8;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--brand:${color}}
-@media (prefers-color-scheme:dark){:root{--bg:#0b0f17;--card:#131a24;--text:#e6e9ef;--muted:#8b95a7;--line:#263042}}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:16px}
-.c{background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:440px;width:100%;overflow:hidden}
-.top{background:var(--brand);color:#fff;padding:24px 22px}.top small{opacity:.85}.top h1{margin:6px 0 0;font-size:24px;line-height:1.2}
-.in{padding:20px 22px}.offer{border:2px dashed var(--brand);border-radius:12px;padding:14px;margin:0 0 16px;font-weight:600;font-size:17px}
-label{display:block;font-weight:600;margin:12px 0 4px;font-size:14px}input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:var(--bg);color:var(--text)}
-button,.btn{display:block;width:100%;text-align:center;background:var(--brand);color:#fff;border:0;border-radius:10px;padding:14px;font-size:16px;font-weight:700;margin-top:16px;cursor:pointer;text-decoration:none}
+  return `${pageHead(title)}
+:root{--brand:${color}}
+.c{background:var(--card);border:1px solid var(--line);border-radius:28px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px -30px color-mix(in srgb,var(--brand) 55%,transparent)}
+.top{background:var(--brand);color:#fff;padding:26px 24px}.top small{opacity:.85}.top h1{margin:6px 0 0;font-size:28px;line-height:1.1;font-weight:700}
+.in{padding:22px 24px}.offer{border:2px dashed var(--brand);border-radius:18px;padding:14px 16px;margin:0 0 16px;font-weight:600;font-size:17px}
+label{display:block;font-weight:600;margin:12px 0 6px;font-size:14px}input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;font:inherit;font-size:16px;background:var(--bg);color:var(--text)}
+button,.btn{display:block;width:100%;text-align:center;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:14px;font:inherit;font-size:16px;font-weight:600;margin-top:18px;cursor:pointer;text-decoration:none}
 .muted{color:var(--muted);font-size:13px}.hp{position:absolute;left:-9999px}.err{color:#dc2626;font-weight:600}
-</style></head><body><div class="c"><div class="top"><small>${escapeHtml(referrer.firstName || 'A friend')} invited you to</small><h1>${escapeHtml(biz.name)}</h1></div><div class="in">${body}</div></div></body></html>`;
+</style></head><body><div class="c"><div class="top"><small>${escapeHtml(referrer.firstName || 'A friend')} invited you to</small><h1>${escapeHtml(biz.name)}</h1></div><div class="in">${body}</div></div>${motionBackground([color])}</body></html>`;
 }
 
 const referralLimit = rateLimiter({ windowMs: 15 * 60_000, max: 20 });
@@ -289,12 +306,11 @@ app.get('/healthz', (req, res) => res.json({ ok: true }));
 // (so link scanners can't unsubscribe people by accident); POST does it,
 // which also supports one-click unsubscribe from Gmail/Outlook.
 // `body` must be trusted HTML (only fixed text is passed in); the title is always escaped.
-const page = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title>
-<style>:root{color-scheme:light dark}body{font-family:system-ui,sans-serif;background:#f5f6f8;color:#111827;margin:0;display:grid;place-items:center;min-height:100vh;padding:16px}
-.c{background:#fff;border-radius:14px;padding:28px;max-width:420px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.08)}
-button{background:#111827;color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:15px;cursor:pointer;min-height:44px}
-@media (prefers-color-scheme:dark){body{background:#0b0f17;color:#e6e9ef}.c{background:#131a24}button{background:#3b82f6}}</style></head>
-<body><div class="c">${body}</div></body></html>`;
+const page = (title, body) => `${pageHead(title)}
+.c{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:30px;max-width:420px;text-align:center}
+.c h2{margin-top:0;font-weight:700}
+button{background:var(--text);color:var(--bg);border:0;border-radius:999px;padding:0 22px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;min-height:46px}
+</style></head><body><div class="c">${body}</div>${motionBackground(['#6d5efc', '#12b5a5', '#f4b13e', '#ff6b3d'])}</body></html>`;
 
 const unsubscribeLimit = rateLimiter({ windowMs: 15 * 60_000, max: 60 });
 app.use('/u', express.urlencoded({ extended: false, limit: '4kb' }), (req, res, next) => {
@@ -329,7 +345,7 @@ app.post('/api/admin/login', (req, res) => {
   const username = String(req.body?.username ?? '').trim().toLowerCase().slice(0, 120);
   const password = String(req.body?.password ?? '');
   let user = null;
-  if (!username || username === ADMIN_USERNAME) {
+  if (!username || username === ADMIN_USERNAME || (ADMIN_EMAIL && username === ADMIN_EMAIL)) {
     if (safeEqual(password, ADMIN_PASSWORD)) user = { id: 'admin', role: 'admin', name: 'Admin' };
   } else {
     user = authenticate(username, password);
@@ -349,6 +365,71 @@ app.post('/api/admin/login', (req, res) => {
   const { token, maxAgeSec } = createSession(user);
   res.set('Set-Cookie', sessionCookie(token, maxAgeSec, req.secure));
   res.json({ ok: true, role: user.role });
+});
+
+// What the sign-in page needs to know (no secrets): is Google sign-in switched on?
+app.get('/api/admin/auth-config', (req, res) => res.json({ googleClientId: GOOGLE_CLIENT_ID || null }));
+
+const sameSite = (req) => {
+  const origin = req.get('origin');
+  return !origin || origin === `${req.protocol}://${req.get('host')}`;
+};
+
+// ----- Continue with Google -----
+// Google proves who the person is; they still need an existing login (or to be the admin).
+const googleLimit = rateLimiter({ windowMs: 15 * 60_000, max: 30 });
+app.post('/api/admin/google', async (req, res) => {
+  if (!sameSite(req)) return res.status(403).json({ error: 'Blocked: request came from another website.' });
+  if (!googleLimit(req.ip).allowed) return res.status(429).json({ error: 'Too many sign-in attempts. Please try again later.' });
+  let who;
+  try {
+    who = await verifyGoogleCredential(req.body?.credential);
+  } catch (err) {
+    return res.status(401).json({ error: err.message });
+  }
+  const user = ADMIN_EMAIL && who.email === ADMIN_EMAIL ? { id: 'admin', role: 'admin', name: who.name || 'Admin', email: who.email } : sessionUserForEmail(who.email);
+  if (!user) return res.status(403).json({ error: `There's no account for ${who.email}. Ask the person who set up your business to add this email.` });
+  const { token, maxAgeSec } = createSession(user);
+  res.set('Set-Cookie', sessionCookie(token, maxAgeSec, req.secure));
+  res.json({ ok: true, role: user.role });
+});
+
+// ----- Forgot password -----
+// Always answers the same way, so nobody can use this to find out who has an account.
+const forgotLimit = rateLimiter({ windowMs: 15 * 60_000, max: 5 });
+app.post('/api/admin/forgot', (req, res) => {
+  if (!sameSite(req)) return res.status(403).json({ error: 'Blocked: request came from another website.' });
+  if (!forgotLimit(req.ip).allowed) return res.status(429).json({ error: 'Too many requests. Please try again in 15 minutes.' });
+  const email = String(req.body?.email || '').trim().toLowerCase().slice(0, 120);
+  const reply = { ok: true, message: 'If that email has an account, a reset link is on its way. It works for 30 minutes.' };
+  const reset = email && createResetToken(email);
+  if (reset) {
+    const link = `${APP_URL}/admin#reset=${reset.token}`;
+    sendEmail({
+      to: reset.user.email,
+      toName: reset.user.name,
+      fromName: 'Marketing Agent',
+      subject: 'Reset your password',
+      text: [`Hi${reset.user.name ? ' ' + reset.user.name.split(' ')[0] : ''},`, '', 'Someone (hopefully you) asked to reset your dashboard password. Open this link to choose a new one:', '', link, '', 'It works once, for 30 minutes. If you did not ask for this, ignore this email: your password stays the same.'].join('\n'),
+    }).catch((err) => console.error('[auth] reset email failed:', err.message));
+    console.log(`[auth] password reset link created for ${reset.user.email}`);
+  }
+  res.json(reply);
+});
+
+const resetLimit = rateLimiter({ windowMs: 15 * 60_000, max: 10 });
+app.post('/api/admin/reset', (req, res) => {
+  if (!sameSite(req)) return res.status(403).json({ error: 'Blocked: request came from another website.' });
+  if (!resetLimit(req.ip).allowed) return res.status(429).json({ error: 'Too many attempts. Please try again later.' });
+  let u;
+  try {
+    u = resetPasswordWithToken(req.body?.token, req.body?.password);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+  if (!u) return res.status(400).json({ error: 'This reset link is invalid, already used or expired. Ask for a new one.' });
+  destroySessionsWhere((s) => s.id === u.id); // sign out everywhere with the old password
+  res.json({ ok: true, email: u.email });
 });
 
 // "Try the demo": prospects sign into the sample business with one click, no password.

@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="Marketing" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" />
   <script>
     // Theme follows the device (light/dark) unless the user picks one with the switch.
     (function () {
@@ -30,8 +30,8 @@
       --canvas: #ffffff; --raised: #ffffff; --mist: #f4f6f9; --ink: #1b1c1f; --slate: #5e6470; --hair: #e6e8ec; --hair-strong: #d5d9e0;
       --on-ink: #ffffff; --ok: #188a4f; --bad: #c9372c; --warn-bg: #fff6dc; --warn-text: #7a5300; --ok-bg: #e6f6ec; --ok-text: #135c36;
       --dot: rgba(27, 28, 31, .22); --shadow: 0 1px 2px rgba(20, 24, 33, .04), 0 8px 28px rgba(20, 24, 33, .06);
-      --blue: #4c8df6; --green: #3dba7a; --yellow: #f6c343; --coral: #ee6a55; --wa: #1f9d55;
-      --font: 'Google Sans Flex', 'Google Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --dusk: #6d5efc; --lagoon: #12b5a5; --gold: #f4b13e; --sunset: #ff6b3d; --wa: #1f9d55;
+      --font: 'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
     :root[data-theme="dark"] {
       color-scheme: dark;
@@ -53,10 +53,10 @@
     html { -webkit-text-size-adjust: 100%; }
     body { margin: 0; font-family: var(--font); background: var(--canvas); color: var(--ink); font-size: 15px; line-height: 1.5; transition: background .25s, color .25s; }
     a { color: inherit; text-underline-offset: 3px; }
-    :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    :focus-visible { outline: 2px solid var(--dusk); outline-offset: 2px; }
     .hidden { display: none !important; }
     .muted { color: var(--slate); }
-    h1, h2, h3 { font-weight: 450; letter-spacing: -0.015em; margin: 0; }
+    h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; margin: 0; }
     p { margin: 0 0 12px; }
 
 
@@ -74,7 +74,7 @@
     label { display: block; font-weight: 500; margin: 14px 0 6px; font-size: 14px; }
     label small { font-weight: 400; color: var(--slate); }
     input, textarea, select { width: 100%; padding: 11px 14px; border: 1px solid var(--hair-strong); border-radius: 14px; font: inherit; background: var(--raised); color: var(--ink); transition: border-color .15s, box-shadow .15s; }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 22%, transparent); }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--dusk); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dusk) 22%, transparent); }
     input:disabled, textarea:disabled, select:disabled { opacity: .65; }
     input::placeholder, textarea::placeholder { color: var(--slate); opacity: .8; }
     input[type="color"] { height: 46px; padding: 4px; }
@@ -94,34 +94,67 @@
     #login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; position: relative; overflow: hidden; }
     #dots { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
     .login-top, .login-main, .login-foot { position: relative; z-index: 1; }
-    .login-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px; }
-    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; font-size: 17px; letter-spacing: -0.01em; text-decoration: none; }
+    .login-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; text-decoration: none; }
     .brand img { width: 28px; height: 28px; border-radius: 8px; }
-    .login-main { display: grid; justify-items: center; align-content: center; padding: 24px 16px 40px; text-align: center; }
-    .hero { font-size: clamp(38px, 6.4vw, 72px); line-height: 1.04; font-weight: 400; letter-spacing: -0.035em; margin: 0 0 18px; min-height: 2.1em; white-space: pre-line; text-wrap: balance; }
-    .hero .caret { display: inline-block; width: 2px; height: .9em; margin-left: 4px; vertical-align: -0.08em; background: linear-gradient(var(--blue), var(--green), var(--yellow), var(--coral)); animation: blink 1s steps(1) infinite; }
-    @keyframes blink { 50% { opacity: 0; } }
-    .lede { color: var(--slate); font-size: 17px; max-width: 46ch; margin: 0 auto 32px; }
-    .login-card { width: min(420px, 100%); background: var(--raised); border-radius: 28px; padding: 26px; text-align: left; box-shadow: var(--shadow); transition: transform .35s cubic-bezier(.2, .7, .2, 1); will-change: transform; }
-    .login-card h2 { font-size: 20px; margin-bottom: 4px; }
+    .login-main { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 64px; align-items: center; padding: 20px 28px 56px; }
+    .hero { font-size: clamp(44px, 6.2vw, 88px); line-height: .96; font-weight: 750; letter-spacing: -0.05em; margin: 0 0 22px; text-wrap: balance; }
+    .lede { color: var(--slate); font-size: 18px; max-width: 44ch; margin: 0 0 30px; text-wrap: pretty; }
+    .login-card { width: min(440px, 100%); background: var(--raised); border-radius: 28px; padding: 26px; box-shadow: var(--shadow); }
+    .login-card h2 { font-size: 22px; margin-bottom: 14px; }
     .pw-wrap { position: relative; }
     .pw-wrap input { padding-right: 84px; }
     .pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 34px; border: 0; background: var(--mist); color: var(--ink); border-radius: 999px; padding: 0 12px; font: 500 13px var(--font); cursor: pointer; }
+    .label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .link-quiet { background: none; border: 0; padding: 0; color: var(--slate); font: 500 14px var(--font); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .link-quiet:hover { color: var(--ink); }
     .login-card .btn { width: 100%; }
     .or { display: flex; align-items: center; gap: 12px; color: var(--slate); font-size: 13px; margin: 18px 0; }
     .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--hair); }
     .demo-note { font-size: 13px; color: var(--slate); margin: 10px 0 0; }
-    .login-card details { margin-top: 16px; font-size: 14px; }
-    .login-card summary { cursor: pointer; color: var(--slate); }
+    #googleBtn { min-height: 44px; display: flex; justify-content: center; }
     .login-foot { text-align: center; padding: 0 16px 22px; font-size: 13px; color: var(--slate); }
 
+    /* The signature moment: a live WhatsApp-style chat showing what the assistant does. */
+    .preview { justify-self: center; width: min(390px, 100%); }
+    .stage { position: relative; }
+    .phone { border-radius: 34px; overflow: hidden; transition: transform .35s cubic-bezier(.2, .7, .2, 1); will-change: transform; }
+    .phone-head { display: flex; gap: 12px; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--hair); }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--lagoon), var(--dusk)); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex: none; }
+    .phone-head b { display: block; font-weight: 600; }
+    .phone-head small { color: var(--lagoon); font-size: 13px; }
+    .chat { height: 392px; padding: 18px 16px 22px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden;
+      background: radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--dusk) 9%, transparent), transparent 60%), radial-gradient(120% 70% at 0% 100%, color-mix(in srgb, var(--lagoon) 9%, transparent), transparent 60%); }
+    .bubble { max-width: 84%; padding: 10px 14px 8px; border-radius: 20px; font-size: 15px; line-height: 1.42; animation: pop .38s cubic-bezier(.2, .9, .3, 1.25) both; }
+    .bubble.guest { align-self: flex-end; background: var(--ink); color: var(--on-ink); border-bottom-right-radius: 6px; }
+    .bubble.bot { align-self: flex-start; background: var(--mist); border-bottom-left-radius: 6px; }
+    .bubble time { display: block; font-size: 11px; opacity: .6; margin-top: 2px; text-align: right; }
+    .typing { align-self: flex-start; background: var(--mist); border-radius: 20px; border-bottom-left-radius: 6px; padding: 13px 15px; display: flex; gap: 4px; animation: pop .3s ease both; }
+    .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--slate); animation: bob 1s infinite; }
+    .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+    @keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.95); } }
+    @keyframes bob { 0%, 60%, 100% { transform: none; opacity: .45; } 30% { transform: translateY(-4px); opacity: 1; } }
+    .toast { position: absolute; left: -36px; bottom: -26px; width: min(300px, 84%); background: var(--raised); border: 1px solid var(--hair); border-radius: 20px; padding: 12px 14px; box-shadow: var(--shadow); display: flex; gap: 12px; align-items: center; transform: translateY(18px) scale(.97); opacity: 0; transition: transform .5s cubic-bezier(.2, .9, .3, 1.2), opacity .4s; }
+    .toast.show { transform: none; opacity: 1; }
+    .toast .ico { width: 38px; height: 38px; border-radius: 12px; background: color-mix(in srgb, var(--sunset) 18%, transparent); display: grid; place-items: center; font-size: 18px; flex: none; }
+    .toast b { display: block; font-size: 14px; font-weight: 600; }
+    .toast span { font-size: 13px; color: var(--slate); }
+    .preview-caption { text-align: center; color: var(--slate); font-size: 13px; margin: 44px 0 0; }
+
+    @media (max-width: 980px) {
+      .login-main { grid-template-columns: 1fr; gap: 48px; max-width: 580px; }
+      .toast { left: 12px; }
+    }
+
     /* ---------- App shell ---------- */
+    /* Calm interactive dots behind the dashboard; the cards sit on top, so they only show in the gaps. */
+    #appField { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
     .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px; padding: 12px 24px; background: color-mix(in srgb, var(--canvas) 86%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--hair); }
     .topbar .spacer { flex: 1; }
     #bizSelect { width: auto; max-width: 260px; min-height: 38px; padding: 6px 34px 6px 14px; border-radius: 999px; font-weight: 500; }
     #bizName { font-weight: 500; }
     .ai-pill { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--hair); color: var(--slate); white-space: nowrap; }
-    .ai-pill.on::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; vertical-align: 1px; }
+    .ai-pill.on::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--lagoon); margin-right: 6px; vertical-align: 1px; }
     main { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; }
     .banner-note { border-radius: 16px; padding: 12px 16px; margin-bottom: 18px; font-weight: 450; }
     .banner-note.test { background: var(--warn-bg); color: var(--warn-text); }
@@ -129,16 +162,16 @@
     .banner-note a { font-weight: 600; }
 
     .welcome { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-    .welcome h1 { font-size: clamp(30px, 4.4vw, 46px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 400; }
+    .welcome h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; }
     .welcome .hello { color: var(--slate); margin: 0 0 4px; font-size: 15px; }
 
     nav#tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 26px; }
     nav#tabs button { border: 1px solid var(--hair); background: var(--raised); color: var(--slate); font: 500 14px var(--font); padding: 0 16px; min-height: 40px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s; }
     nav#tabs button:hover { color: var(--ink); }
     nav#tabs button.active { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
-    nav#tabs .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 999px; font-size: 12px; background: var(--coral); color: #fff; }
+    nav#tabs .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 999px; font-size: 12px; background: var(--sunset); color: #fff; }
 
-    .card { background: var(--raised); border: 1px solid var(--hair); border-radius: 24px; padding: 24px; margin-bottom: 18px; }
+    .card { background: color-mix(in srgb, var(--raised) 84%, transparent); border: 1px solid var(--hair); border-radius: 24px; padding: 24px; margin-bottom: 18px; }
     .card h2 { font-size: 21px; margin-bottom: 6px; }
     .card > p.muted:first-of-type { margin-bottom: 14px; }
 
@@ -147,7 +180,7 @@
     .summary-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
     .stat { padding: 18px 20px; border-left: 1px solid var(--hair); }
     .stat:first-child { border-left: 0; }
-    .stat b { display: block; font-size: 38px; line-height: 1.1; font-weight: 400; letter-spacing: -0.03em; }
+    .stat b { display: block; font-size: 40px; line-height: 1.1; font-weight: 650; letter-spacing: -0.04em; }
     .stat span { color: var(--slate); font-size: 14px; }
 
     /* Tables become cards on phones */
@@ -178,17 +211,17 @@
 
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip { font-size: 13px; padding: 3px 11px; border-radius: 999px; background: var(--mist); color: var(--ink); }
-    .chip.review { background: color-mix(in srgb, var(--yellow) 26%, transparent); }
-    .chip.approved { background: color-mix(in srgb, var(--blue) 20%, transparent); }
-    .chip.sent, .chip.done { background: color-mix(in srgb, var(--green) 22%, transparent); }
+    .chip.review { background: color-mix(in srgb, var(--gold) 26%, transparent); }
+    .chip.approved { background: color-mix(in srgb, var(--dusk) 20%, transparent); }
+    .chip.sent, .chip.done { background: color-mix(in srgb, var(--lagoon) 22%, transparent); }
     .chip.skipped { color: var(--slate); }
-    .chip.failed { background: color-mix(in srgb, var(--coral) 24%, transparent); }
-    .chip.generating, .chip.sending { background: color-mix(in srgb, var(--blue) 14%, transparent); }
+    .chip.failed { background: color-mix(in srgb, var(--sunset) 24%, transparent); }
+    .chip.generating, .chip.sending { background: color-mix(in srgb, var(--dusk) 14%, transparent); }
     .camp { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 16px 4px; border-bottom: 1px solid var(--hair); cursor: pointer; border-radius: 12px; }
     .camp:hover { background: var(--mist); }
     .camp:last-child { border-bottom: 0; }
-    .email { background: var(--raised); border: 1px solid var(--hair); border-radius: 22px; padding: 20px; margin-bottom: 12px; transition: opacity .2s; }
-    .email.approved { border-color: color-mix(in srgb, var(--blue) 45%, var(--hair)); }
+    .email { background: color-mix(in srgb, var(--raised) 84%, transparent); border: 1px solid var(--hair); border-radius: 22px; padding: 20px; margin-bottom: 12px; transition: opacity .2s; }
+    .email.approved { border-color: color-mix(in srgb, var(--dusk) 45%, var(--hair)); }
     .email.sent, .email.skipped { opacity: .7; }
     .email .to { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
     .email textarea { min-height: 170px; }
@@ -204,12 +237,12 @@
       border: 1px solid transparent;
       background:
         linear-gradient(var(--raised), var(--raised)) padding-box,
-        conic-gradient(from 210deg, color-mix(in srgb, var(--blue) 70%, var(--hair)), color-mix(in srgb, var(--green) 70%, var(--hair)), color-mix(in srgb, var(--yellow) 70%, var(--hair)), color-mix(in srgb, var(--coral) 70%, var(--hair)), color-mix(in srgb, var(--blue) 70%, var(--hair))) border-box;
+        conic-gradient(from 210deg, color-mix(in srgb, var(--dusk) 70%, var(--hair)), color-mix(in srgb, var(--lagoon) 70%, var(--hair)), color-mix(in srgb, var(--gold) 70%, var(--hair)), color-mix(in srgb, var(--sunset) 70%, var(--hair)), color-mix(in srgb, var(--dusk) 70%, var(--hair))) border-box;
       box-shadow:
-        -28px 18px 70px -34px color-mix(in srgb, var(--blue) 70%, transparent),
-        28px 18px 70px -34px color-mix(in srgb, var(--coral) 60%, transparent),
-        0 34px 70px -40px color-mix(in srgb, var(--green) 65%, transparent),
-        0 -16px 60px -38px color-mix(in srgb, var(--yellow) 70%, transparent);
+        -28px 18px 70px -34px color-mix(in srgb, var(--dusk) 70%, transparent),
+        28px 18px 70px -34px color-mix(in srgb, var(--sunset) 60%, transparent),
+        0 34px 70px -40px color-mix(in srgb, var(--lagoon) 65%, transparent),
+        0 -16px 60px -38px color-mix(in srgb, var(--gold) 70%, transparent);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -264,36 +297,75 @@
       <div class="theme-switch" data-theme-switch></div>
     </div>
     <div class="login-main">
-      <h1 class="hero" id="hero" aria-label="Every inquiry answered. Every customer remembered."></h1>
-      <p class="lede">Your AI assistant replies to customers day and night, writes the emails that bring old guests back, and shows you who to call today.</p>
-      <div class="login-card lift">
-        <h2>Sign in to your business</h2>
-        <p class="muted" style="font-size:14px">Use the email and password you were given.</p>
-        <form id="loginForm">
-          <label for="user">Email</label>
-          <input id="user" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="you@business.com" />
-          <label for="pw">Password</label>
-          <div class="pw-wrap">
-            <input id="pw" type="password" autocomplete="current-password" required />
-            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">Show</button>
-          </div>
-          <div class="row"><button class="btn" id="loginBtn">Sign in</button></div>
-          <div id="loginErr" class="msg err" role="alert"></div>
-        </form>
-        <div class="or">or</div>
-        <button type="button" class="btn secondary" id="demoBtn">Try the demo</button>
-        <p class="demo-note">Opens a sample hotel's dashboard with real-looking data. Click anything: it resets itself.</p>
-        <details>
-          <summary>Forgot your password?</summary>
-          <p class="muted" style="margin:8px 0 0">Ask the person who set up your account to reset it for you. You can then change it yourself under Business setup.</p>
-        </details>
+      <div class="intro">
+        <h1 class="hero">Never leave a customer on read.</h1>
+        <p class="lede">Your AI assistant answers WhatsApp, Instagram and your website day and night, then writes the messages that bring past customers back. You just approve.</p>
+        <div class="login-card lift">
+          <!-- Sign in -->
+          <section id="viewSignin">
+            <h2>Sign in</h2>
+            <div id="googleWrap" class="hidden"><div id="googleBtn"></div><div class="or">or with email</div></div>
+            <form id="loginForm">
+              <label for="user">Email</label>
+              <input id="user" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="you@business.com" />
+              <div class="label-row"><label for="pw">Password</label><button type="button" class="link-quiet" id="forgotLink">Forgot password?</button></div>
+              <div class="pw-wrap">
+                <input id="pw" type="password" autocomplete="current-password" required />
+                <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">Show</button>
+              </div>
+              <div class="row"><button class="btn" id="loginBtn">Sign in</button></div>
+              <div id="loginErr" class="msg err" role="alert"></div>
+            </form>
+            <div class="or">New here?</div>
+            <button type="button" class="btn secondary" id="demoBtn">Try the demo</button>
+            <p class="demo-note">Opens the dashboard of the sample hotel in the chat, with real-looking data. Click anything: it resets itself.</p>
+          </section>
+          <!-- Forgot password -->
+          <section id="viewForgot" class="hidden">
+            <h2>Reset your password</h2>
+            <p class="muted" style="font-size:15px">Enter the email you sign in with. We'll email you a link to choose a new password.</p>
+            <form id="forgotForm">
+              <label for="forgotEmail">Email</label>
+              <input id="forgotEmail" type="email" autocomplete="username" required placeholder="you@business.com" />
+              <div class="row"><button class="btn" id="forgotBtn">Send reset link</button></div>
+              <div id="forgotMsg" class="msg" role="status"></div>
+            </form>
+            <p class="muted" style="font-size:13px;margin-top:16px">Main admin? Your password is the ADMIN_PASSWORD in the server settings.</p>
+            <button type="button" class="link-quiet" data-view="signin">Back to sign in</button>
+          </section>
+          <!-- New password (from the emailed link) -->
+          <section id="viewReset" class="hidden">
+            <h2>Choose a new password</h2>
+            <form id="resetForm">
+              <label for="newPw">New password <small>(8+ characters)</small></label>
+              <input id="newPw" type="password" autocomplete="new-password" minlength="8" required />
+              <label for="newPw2">Type it again</label>
+              <input id="newPw2" type="password" autocomplete="new-password" minlength="8" required />
+              <div class="row"><button class="btn" id="resetBtn">Save new password</button></div>
+              <div id="resetMsg" class="msg" role="status"></div>
+            </form>
+            <button type="button" class="link-quiet" data-view="signin" style="margin-top:14px">Back to sign in</button>
+          </section>
+        </div>
+      </div>
+
+      <div class="preview" aria-hidden="true">
+        <div class="stage">
+        <div class="phone lift">
+          <div class="phone-head"><span class="avatar">LB</span><div><b>Lagoon Breeze Hotel</b><small>● Assistant online, replies instantly</small></div></div>
+          <div class="chat" id="chat"></div>
+        </div>
+        <div class="toast" id="toast"><span class="ico">🔔</span><div><b>New inquiry: Chinedu</b><span>Room this Friday, 0803 000 2233</span></div></div>
+        </div>
+        <p class="preview-caption">A conversation your assistant could have at 11pm tonight.</p>
       </div>
     </div>
-    <div class="login-foot">Made for hotels, restaurants, salons and every business that lives on WhatsApp.</div>
+    <div class="login-foot">Made in Lagos for hotels, restaurants, salons and every business that lives on WhatsApp.</div>
   </div>
 
   <!-- ================= DASHBOARD ================= -->
   <div id="app" class="hidden">
+    <canvas id="appField" aria-hidden="true"></canvas>
     <header class="topbar">
       <span class="brand"><img src="/icon.svg" alt="" /><span>Marketing Agent</span></span>
       <select id="bizSelect" aria-label="Business"></select>
@@ -582,6 +654,7 @@
       $('#app').classList.add('hidden');
       $('#login').classList.remove('hidden');
       $('#loginErr').textContent = message;
+      stopAppField();
       startDots();
     }
 
@@ -601,6 +674,7 @@
               document.documentElement.dataset.theme = key;
               try { localStorage.setItem('ma-theme', key); } catch {}
               paintThemeSwitches();
+              if (typeof renderGoogle === 'function') renderGoogle();
             });
             box.append(b);
           }
@@ -610,32 +684,123 @@
     }
     paintThemeSwitches();
 
-    // ---------- Sign-in screen: drifting dots + headline that writes itself once ----------
+    // ---------- Sign-in screen: interactive dots ----------
     // Dots that dodge the mouse/finger and light up in the four glow colours (see /motion.js).
     // They only run while the sign-in screen is showing.
     let dotsField = null;
     function startDots() {
       if (dotsField || !window.MotionField) return;
       const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-      dotsField = MotionField.start($('#dots'), { colors: () => [css('--blue'), css('--green'), css('--yellow'), css('--coral')] });
+      dotsField = MotionField.start($('#dots'), { density: 5200, colors: () => [css('--dusk'), css('--lagoon'), css('--gold'), css('--sunset')] });
     }
     function stopDots() { dotsField?.stop(); dotsField = null; }
-    window.MotionField?.tilt($('.login-card'), 3);
 
-    function typeHero() {
-      const hero = $('#hero');
-      const text = hero.getAttribute('aria-label').replace('. ', '.\n'); // one sentence per line
-      const caret = '<span class="caret" aria-hidden="true"></span>';
-      if (reduceMotion) { hero.textContent = text; return; }
-      let i = 0;
-      const tick = () => {
-        i++;
-        hero.innerHTML = '';
-        hero.append(document.createTextNode(text.slice(0, i)));
-        hero.insertAdjacentHTML('beforeend', caret);
-        if (i < text.length) setTimeout(tick, text[i - 1] === '.' ? 260 : 34);
-      };
-      setTimeout(tick, 250);
+    // Inside the dashboard: fewer dots and a softer light, so it stays calm while you work.
+    let appField = null;
+    function startAppField() {
+      if (appField || !window.MotionField) return;
+      const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+      appField = MotionField.start($('#appField'), { parallax: true, density: 6500, spot: 0.12, colors: () => [css('--dusk'), css('--lagoon'), css('--gold'), css('--sunset')] });
+    }
+    function stopAppField() { appField?.stop(); appField = null; }
+    window.MotionField?.tilt($('.phone'), 5);
+
+    // ---------- The live chat on the sign-in screen ----------
+    const CHAT = [
+      ['guest', 'Good evening! Any room free this Friday? 🙏'],
+      ['bot', 'Yes! A standard room is ₦65,000 a night, breakfast for two included. Shall I hold one for you?'],
+      ['guest', 'Yes please. Chinedu, 0803 000 2233'],
+      ['bot', 'Done, Chinedu 🎉 Reception will confirm on WhatsApp in a few minutes.'],
+    ];
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    function addBubble(who, text) {
+      const b = el('div', text, `bubble ${who}`);
+      b.append(el('time', new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })));
+      $('#chat').append(b);
+    }
+    async function playChat() {
+      const chat = $('#chat'), toast = $('#toast');
+      if (reduceMotion) { CHAT.forEach(([w, t]) => addBubble(w, t)); toast.classList.add('show'); return; }
+      while (true) {
+        if ($('#login').classList.contains('hidden') || document.hidden) { await wait(1000); continue; }
+        chat.replaceChildren(); toast.classList.remove('show');
+        await wait(900);
+        for (const [who, text] of CHAT) {
+          if (who === 'bot') {
+            const typing = el('div', null, 'typing'); typing.append(el('i'), el('i'), el('i'));
+            chat.append(typing); await wait(1300); typing.remove();
+          } else await wait(1000);
+          addBubble(who, text);
+          await wait(900);
+        }
+        toast.classList.add('show');
+        await wait(4200);
+      }
+    }
+
+    // ---------- Sign in / forgot password / new password ----------
+    function showView(name) {
+      for (const v of ['signin', 'forgot', 'reset']) $(`#view${v[0].toUpperCase()}${v.slice(1)}`).classList.toggle('hidden', v !== name);
+    }
+    document.addEventListener('click', (e) => { const v = e.target.closest('[data-view]')?.dataset.view; if (v) showView(v); });
+    function loginMessage(text, ok = false) { const m = $('#loginErr'); m.className = `msg ${ok ? 'ok' : 'err'}`; m.textContent = text; }
+
+    $('#forgotLink').addEventListener('click', () => { $('#forgotEmail').value = $('#user').value.trim(); $('#forgotMsg').textContent = ''; showView('forgot'); $('#forgotEmail').focus(); });
+    $('#forgotForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('#forgotBtn'), msg = $('#forgotMsg');
+      btn.disabled = true;
+      try {
+        const r = await api('/forgot', { method: 'POST', body: JSON.stringify({ email: $('#forgotEmail').value.trim() }) });
+        msg.className = 'msg ok'; msg.textContent = r.message;
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+      btn.disabled = false;
+    });
+
+    // A reset link looks like /admin#reset=<token>. Keep the token, then remove it from the address bar.
+    let resetToken = (location.hash.match(/^#reset=([a-f0-9]{64})$/) || [])[1] || '';
+    if (resetToken) { history.replaceState(null, '', location.pathname); showView('reset'); }
+    $('#resetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = $('#resetMsg');
+      if ($('#newPw').value !== $('#newPw2').value) { msg.className = 'msg err'; msg.textContent = "The two passwords don't match."; return; }
+      $('#resetBtn').disabled = true;
+      try {
+        const r = await api('/reset', { method: 'POST', body: JSON.stringify({ token: resetToken, password: $('#newPw').value }) });
+        resetToken = '';
+        $('#newPw').value = $('#newPw2').value = '';
+        showView('signin');
+        $('#user').value = r.email;
+        loginMessage('Password changed ✓ Sign in with your new password.', true);
+        $('#pw').focus();
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+      $('#resetBtn').disabled = false;
+    });
+
+    // ---------- Continue with Google (only when GOOGLE_CLIENT_ID is set on the server) ----------
+    let googleReady = false;
+    function renderGoogle() {
+      if (!googleReady) return;
+      const dark = getComputedStyle(document.documentElement).colorScheme === 'dark';
+      $('#googleBtn').replaceChildren();
+      google.accounts.id.renderButton($('#googleBtn'), { theme: dark ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'continue_with', width: Math.min(388, $('#googleBtn').clientWidth || 320) });
+    }
+    async function setupGoogle() {
+      try {
+        const { googleClientId } = await fetch('/api/admin/auth-config').then((r) => r.json());
+        if (!googleClientId) return;
+        await new Promise((ok, fail) => { const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true; sc.onload = ok; sc.onerror = fail; document.head.append(sc); });
+        google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: async ({ credential }) => {
+            try { await api('/google', { method: 'POST', body: JSON.stringify({ credential }) }); loginMessage(''); await start(); }
+            catch (err) { loginMessage(err.message); }
+          },
+        });
+        googleReady = true;
+        $('#googleWrap').classList.remove('hidden');
+        renderGoogle();
+      } catch { /* Google unreachable: email sign-in still works */ }
     }
 
     // ---------- Login ----------
@@ -689,6 +854,7 @@
         $('#login').classList.add('hidden');
         $('#app').classList.remove('hidden');
         stopDots();
+        startAppField();
         const pill = $('#aiPill');
         pill.textContent = status.ai.enabled ? 'AI assistant on' : 'Offline mode';
         pill.title = status.ai.enabled ? status.ai.model : 'No AI key: simple built-in replies';
@@ -1275,9 +1441,10 @@
       } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
     });
 
-    typeHero();
+    playChat();
+    setupGoogle();
     startDots();
-    start(); // if the session cookie is still valid, go straight to the dashboard
+    if (!resetToken) start(); // if the session cookie is still valid, go straight to the dashboard
 
     // Register the service worker so phones offer "Add to Home Screen" / "Install app".
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});

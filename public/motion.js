@@ -3,7 +3,8 @@
 // Used by the sign-in page and the customer page. Respects "reduce motion" and pauses
 // when the tab is hidden, so it doesn't drain phone batteries.
 //
-//   MotionField.start(canvas, { colors: ['#4c8df6', ...], parallax: true })
+//   MotionField.start(canvas, { colors: ['#4c8df6', ...], parallax: true, density: 4200, spot: 0.16 })
+//   density: screen area per dot (bigger = fewer dots). spot: brightness of the light that follows the pointer.
 (function () {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const RADIUS = 170; // how far around the pointer dots react (px)
@@ -22,7 +23,7 @@
       w = canvas.clientWidth; h = canvas.clientHeight;
       canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const n = Math.round(Math.min(260, Math.max(60, (w * h) / 4200)));
+      const n = Math.round(Math.min(260, Math.max(40, (w * h) / (opts.density || 4200))));
       dots = Array.from({ length: n }, () => ({
         x: Math.random() * w, y: Math.random() * h,
         r: Math.random() * 1.4 + 0.5,
@@ -69,7 +70,7 @@
           const g = ctx.createRadialGradient(spot.x, spot.y, 0, spot.x, spot.y, 280);
           g.addColorStop(0, colors()[0]);
           g.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.globalAlpha = 0.16 * spot.a;
+          ctx.globalAlpha = (opts.spot ?? 0.16) * spot.a;
           ctx.fillStyle = g;
           ctx.fillRect(spot.x - 280, spot.y - 280, 560, 560);
           ctx.globalAlpha = 1;
