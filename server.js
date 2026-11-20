@@ -553,6 +553,16 @@ admin.get('/me', (req, res) => {
   res.json({ id, role, businessId, email, name });
 });
 
+// "Start over" in the demo: puts the sample hotel back to its starting state (for video
+// retakes and new prospects). Only ever touches the demo business; owners can't call it.
+const demoResetLimit = rateLimiter({ windowMs: 15 * 60_000, max: 30 });
+admin.post('/demo/reset', (req, res) => {
+  if (req.user.role !== 'demo' && !isAdmin(req)) return res.status(403).json({ error: 'Only the demo can be reset.' });
+  if (!demoResetLimit(req.ip).allowed) return res.status(429).json({ error: 'Too many resets. Please wait a few minutes.' });
+  resetDemo();
+  res.json({ ok: true });
+});
+
 // Owners change their own password (they must know the current one).
 admin.post('/me/password', noDemo, (req, res) => {
   if (req.user.role !== 'owner') return res.status(400).json({ error: 'The admin password is set in the server settings (ADMIN_PASSWORD).' });

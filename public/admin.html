@@ -198,6 +198,9 @@
     .banner-note { border-radius: 16px; padding: 12px 16px; margin-bottom: 18px; font-weight: 450; }
     .banner-note.test { background: var(--warn-bg); color: var(--warn-text); }
     .banner-note.live { background: var(--ok-bg); color: var(--ok-text); }
+    .demo-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    .demo-actions .btn { color: var(--ok-text); border-color: currentColor; }
+    #demoResetMsg { font-size: 14px; }
     .banner-note a { font-weight: 600; }
 
     .welcome { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
@@ -426,7 +429,8 @@
       <button type="button" class="btn secondary small" id="logoutBtn">Sign out</button>
     </header>
     <main>
-      <div id="demoBanner" class="banner-note live hidden">You're exploring a sample hotel. Approve emails, delete contacts, follow up guests: nothing is really sent and it all resets by itself. <a id="demoCustomerLink" href="/demo/lagoon-breeze-hotel" target="_blank" rel="noopener">See what the hotel's customers see</a></div>
+      <div id="demoBanner" class="banner-note live hidden">You're exploring a sample hotel. Approve emails, delete contacts, follow up guests: nothing is really sent. Press Start over any time to begin again. <a id="demoCustomerLink" href="/demo/lagoon-breeze-hotel" target="_blank" rel="noopener">See what the hotel's customers see</a>
+        <div class="demo-actions"><button type="button" class="btn small secondary" id="demoResetBtn">Start over</button><span id="demoResetMsg" role="status"></span></div></div>
       <div id="weakPw" class="banner-note test hidden">You're using a weak admin password. Set a strong ADMIN_PASSWORD before putting this online.</div>
 
       <div class="welcome">
@@ -959,6 +963,25 @@
       try { localStorage.setItem('ma-biz', bizId); } catch {}
       $('#bizTitle').textContent = e.target.selectedOptions[0]?.textContent.replace(/ \(demo\)$/, '') || '';
       refresh();
+    });
+
+    // Demo "Start over": back to 7 emails to review, 6 inquiries and every contact (for video retakes).
+    $('#demoResetBtn').addEventListener('click', async () => {
+      const btn = $('#demoResetBtn');
+      btn.disabled = true;
+      $('#demoResetMsg').textContent = 'Resetting…';
+      try {
+        await api('/demo/reset', { method: 'POST' });
+        await refresh();
+        document.querySelector('#tabs button[data-tab="leads"]')?.click();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        $('#demoResetMsg').textContent = 'Back to the start.';
+      } catch (err) {
+        $('#demoResetMsg').textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        setTimeout(() => { $('#demoResetMsg').textContent = ''; }, 4000);
+      }
     });
 
     async function refresh() {
