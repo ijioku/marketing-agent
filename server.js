@@ -3,7 +3,7 @@ import path from 'node:path';
 import { getBusiness, listBusinesses, saveBusiness, publicProfile, isValidId } from './lib/businesses.js';
 import { initStore, getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts, getLead, markFollowedUp } from './lib/store.js';
 import { chatReply, draftMessage, draftKinds, aiInfo, CAMPAIGN_GOALS } from './lib/ai.js';
-import { importContacts, listContacts, deleteContacts, unsubscribeByToken, getContactByReferralCode, backfillReferralCodes } from './lib/contacts.js';
+import { importContacts, listContacts, deleteContact, deleteContacts, unsubscribeByToken, getContactByReferralCode, backfillReferralCodes } from './lib/contacts.js';
 import { previewAudience, createCampaign, listCampaigns, getCampaign, updateMessage, approveAll, startSending } from './lib/campaigns.js';
 import { mailerInfo, sendEmail } from './lib/mailer.js';
 import { socialInfo, verifyChallenge, isValidSignature, extractMessages, isDuplicate, sendReply } from './lib/social.js';
@@ -472,6 +472,13 @@ admin.get(
 );
 admin.post('/businesses/:id/contacts/import', withBiz((biz, req) => importContacts(biz.id, String(req.body?.csv || ''))));
 admin.delete('/businesses/:id/contacts', withBiz((biz) => (deleteContacts(biz.id), { ok: true })));
+admin.delete(
+  '/businesses/:id/contacts/:contactId',
+  withBiz((biz, req) => {
+    if (!deleteContact(biz.id, req.params.contactId)) throw new Error('Contact not found');
+    return { ok: true };
+  })
+);
 
 // ----- Campaigns -----
 
