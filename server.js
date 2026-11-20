@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'node:fs';
 import path from 'node:path';
 import { getBusiness, listBusinesses, saveBusiness, publicProfile, isValidId } from './lib/businesses.js';
 import { initStore, getConversation, appendMessages, listConversations, upsertLead, listLeads, updateLeadStatus, addReferralLead, referralCounts, getLead, markFollowedUp } from './lib/store.js';
@@ -51,6 +52,8 @@ app.disable('x-powered-by'); // don't advertise what the server runs on
 if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY) || 1);
 
 app.use(securityHeaders);
+// Sample sites, invite links, unsubscribe pages and the API should never appear in Google.
+app.use(['/demo', '/r', '/u', '/api'], (req, res, next) => { res.set('X-Robots-Tag', 'noindex, nofollow'); next(); });
 
 // ---------- Public (widget) API ----------
 // The chat widget runs on client websites, so this API allows other origins.
@@ -199,8 +202,15 @@ const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&a
 // Shared look for the small server-made pages (invite, unsubscribe): same font, light/dark
 // theme (following the saved System/Dark/Light choice) and the interactive dot background.
 const DARK_TOKENS = 'color-scheme:dark;--bg:#0d0e11;--card:#16181d;--text:#eceef2;--muted:#9aa1ad;--line:#262a31;--dot:rgba(236,238,242,.2)';
-const pageHead = (title) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(title)}</title><link rel="icon" href="/icon.svg" type="image/svg+xml">
+// `meta` = { description, url, image } for search results and WhatsApp/Facebook link previews.
+const metaTags = ({ title, description, url, image = `${APP_URL}/og.png` }) =>
+  description
+    ? `<meta name="description" content="${escapeHtml(description)}">${url ? `<link rel="canonical" href="${escapeHtml(url)}"><meta property="og:url" content="${escapeHtml(url)}">` : ''}
+<meta property="og:type" content="website"><meta property="og:site_name" content="Marketing Agent"><meta property="og:title" content="${escapeHtml(title)}">
+<meta property="og:description" content="${escapeHtml(description)}"><meta property="og:image" content="${escapeHtml(image)}"><meta name="twitter:card" content="summary_large_image">`
+    : '';
+const pageHead = (title, meta = {}) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(title)}</title>${metaTags({ title, ...meta })}<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('ma-theme')||'system'}catch(e){document.documentElement.dataset.theme='system'}</script>
 <style>
@@ -213,9 +223,9 @@ h1,h2{letter-spacing:-.03em}`;
 const motionBackground = (colors) =>
   `<canvas id="field" aria-hidden="true"></canvas><script src="/motion.js"></script><script>window.MotionField&&MotionField.start(document.getElementById('field'),{density:5200,colors:${JSON.stringify(colors)}})</script>`;
 
-function invitePage(biz, referrer, { body, title }) {
+function invitePage(biz, referrer, { body, title, description }) {
   const color = /^#[0-9a-fA-F]{6}$/.test(biz.brandColor || '') ? biz.brandColor : '#2563eb';
-  return `${pageHead(title)}
+  return `${pageHead(title, { description })}
 :root{--brand:${color}}
 .c{background:var(--card);border:1px solid var(--line);border-radius:28px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px -30px color-mix(in srgb,var(--brand) 55%,transparent)}
 .top{background:var(--brand);color:#fff;padding:26px 24px}.top small{opacity:.85}.top h1{margin:6px 0 0;font-size:28px;line-height:1.1;font-weight:700}
@@ -241,6 +251,7 @@ app.get('/r/:code', (req, res) => {
   res.send(
     invitePage(biz, referrer, {
       title: `${referrer.firstName || 'A friend'} invited you to ${biz.name}`,
+      description: `🎁 ${biz.referralOffer || 'A special welcome offer'}. Tap to claim it. ${biz.tagline || ''}`.trim(),
       body: `${previewBar(preview)}<div class="offer">🎁 ${escapeHtml(biz.referralOffer || 'A special welcome offer')}</div>
 <p>${escapeHtml(biz.tagline || '')}</p>
 ${services ? `<p class="muted">${services}</p>` : ''}
@@ -290,6 +301,22 @@ ${isPreview ? '<a class="btn" href="/admin#leads" style="background:transparent;
 
 // ---------- Static files and pages ----------
 
+// The sign-in page carries search and link-preview tags that need the site's full address
+// (WhatsApp and Google ignore relative links), so the server fills in __APP_URL__.
+const adminHtml = fs.readFileSync(path.join(PUBLIC_DIR, 'admin.html'), 'utf8').replaceAll('__APP_URL__', APP_URL);
+app.get('/admin.html', (req, res) => res.redirect(301, '/admin'));
+
+// Search engines: list the public pages, keep private and one-off pages out of results.
+app.get('/robots.txt', (req, res) =>
+  res.type('text/plain').send(['User-agent: *', 'Allow: /admin', 'Allow: /privacy', 'Allow: /terms', 'Disallow: /api/', 'Disallow: /u/', 'Disallow: /demo', '', `Sitemap: ${APP_URL}/sitemap.xml`, ''].join('\n'))
+);
+app.get('/sitemap.xml', (req, res) => {
+  const pages = [['/admin', '1.0'], ['/privacy', '0.3'], ['/terms', '0.3']];
+  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pages.map(([p, pr]) => `  <url><loc>${APP_URL}${p}</loc><priority>${pr}</priority></url>`).join('\n')}
+</urlset>`);
+});
 app.use(express.static(PUBLIC_DIR, { index: false }));
 app.get('/demo/:id', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'demo.html')));
 // A bare /demo link opens the first business's demo instead of a "Not found" error.
@@ -298,7 +325,7 @@ app.get('/demo', (req, res) => {
   if (!first) return res.status(404).json({ error: 'Not found' });
   res.redirect(`/demo/${first.id}`);
 });
-app.get('/admin', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'admin.html')));
+app.get('/admin', (req, res) => res.type('html').send(adminHtml));
 app.get('/', (req, res) => res.redirect('/admin'));
 // Hosting platforms ping this to check the app is alive.
 app.get('/healthz', (req, res) => res.json({ ok: true }));
@@ -306,7 +333,7 @@ app.get('/healthz', (req, res) => res.json({ ok: true }));
 // ---------- Privacy policy and terms ----------
 
 const SUPPORT_EMAIL = /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(process.env.SUPPORT_EMAIL || '') ? process.env.SUPPORT_EMAIL : '';
-const docPage = (title, body) => `${pageHead(title)}
+const docPage = (title, body, meta) => `${pageHead(title, meta)}
 body{display:block;padding:0}
 .doc{max-width:700px;margin:0 auto;padding:28px 16px 64px}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:28px}
@@ -330,8 +357,18 @@ article a{color:inherit;text-decoration-thickness:1px;text-underline-offset:3px}
 <script>(function(){var r=document.documentElement,b=document.querySelectorAll('.sw button');function s(t){r.dataset.theme=t;try{localStorage.setItem('ma-theme',t)}catch(e){}b.forEach(function(x){x.setAttribute('aria-pressed',String(x.dataset.t===t))})}b.forEach(function(x){x.onclick=function(){s(x.dataset.t)}});s(r.dataset.theme||'system')})()</script>
 ${motionBackground(['#6d5efc', '#12b5a5', '#f4b13e', '#ff6b3d'])}</body></html>`;
 
-app.get('/privacy', (req, res) => res.send(docPage('Privacy policy · Marketing Agent', privacyBody({ supportEmail: SUPPORT_EMAIL }))));
-app.get('/terms', (req, res) => res.send(docPage('Terms of service · Marketing Agent', termsBody({ supportEmail: SUPPORT_EMAIL }))));
+app.get('/privacy', (req, res) =>
+  res.send(docPage('Privacy policy · Marketing Agent', privacyBody({ supportEmail: SUPPORT_EMAIL }), {
+    description: 'What information Marketing Agent holds for businesses and their customers, who handles it, how it is protected and your rights under the Nigeria Data Protection Act.',
+    url: `${APP_URL}/privacy`,
+  }))
+);
+app.get('/terms', (req, res) =>
+  res.send(docPage('Terms of service · Marketing Agent', termsBody({ supportEmail: SUPPORT_EMAIL }), {
+    description: 'The rules for businesses using Marketing Agent: accounts, customer data, the AI assistant, payment and ending the service.',
+    url: `${APP_URL}/terms`,
+  }))
+);
 
 // Unsubscribe link in every campaign email. GET shows a confirm button
 // (so link scanners can't unsubscribe people by accident); POST does it,
