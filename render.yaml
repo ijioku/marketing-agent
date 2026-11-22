@@ -1,21 +1,33 @@
 # One-click setup on Render (render.com → New → Blueprint → pick this repo).
 # Free plan: the app sleeps after ~15 minutes without visitors and takes ~50s to wake.
 # Data lives in a free Postgres database (e.g. Neon), set as DATABASE_URL.
+# The list of things Render should run.
 services:
+  # A website (web service)...
   - type: web
+    # ...with this name,
     name: marketing-agent
+    # running on Node.js,
     runtime: node
+    # on the free plan.
     plan: free
+    # Install the libraries listed in package.json.
     buildCommand: npm install
+    # Start the server (runs "node server.js").
     startCommand: npm start
+    # Render checks this address to know the app is alive.
     healthCheckPath: /healthz
+    # Settings passed to the app:
     envVars:
+      # Live-server mode (turns on the strong-password check).
       - key: NODE_ENV
         value: production
+      # The app sits behind Render's proxy; trust it so we see real visitor IP addresses.
       - key: TRUST_PROXY
         value: "1"
       # Secrets: Render asks you to paste these when you create the service.
       - key: ADMIN_PASSWORD
+        # sync: false means the value is typed into Render, never stored in this file.
         sync: false
       - key: DATABASE_URL
         sync: false

@@ -1,4 +1,9 @@
+# Folders and files git must never upload to GitHub:
+# installed libraries (re-created by npm install),
 node_modules/
+# secrets (passwords, API keys),
 .env
+# customer data,
 data/
+# the demo hotel profile (rebuilt automatically on every start).
 businesses/lagoon-breeze-hotel.json

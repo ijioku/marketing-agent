@@ -2,31 +2,48 @@
   Embeddable chat widget. A client adds ONE line to their website:
   <script src="https://YOUR-SERVER/widget.js" data-business="their-business-id" defer></script>
 */
+// Everything is wrapped in a function so our variables never clash with the client's site.
 (function () {
+  // The <script> tag that loaded this file.
   const script = document.currentScript;
+  // Can't find it (very old browser): do nothing.
   if (!script) return;
+  // The business id from data-business="...".
   const businessId = script.dataset.business;
+  // Our server's address, taken from where this script was loaded.
   const server = new URL(script.src).origin;
+  // No business id: warn the site owner in the console and stop.
   if (!businessId) return console.warn('[marketing-agent] missing data-business attribute');
 
   // Stable anonymous visitor id so the conversation continues across page loads.
+  // Will hold this visitor's id.
   let sessionId;
+  // Where it's kept in the browser (one per business).
   const storeKey = `ma-session-${businessId}`;
   try {
+    // Read it if this visitor has chatted before.
     sessionId = localStorage.getItem(storeKey);
+  // Storage blocked (private mode): carry on without it.
   } catch {}
+  // No id yet:
   if (!sessionId) {
+    // make a random one (with a fallback for old browsers), letters, digits and dashes only.
     sessionId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)).replace(/[^\w-]/g, '');
     try {
+      // save it for next time.
       localStorage.setItem(storeKey, sessionId);
     } catch {}
   }
 
+  // A box that holds the chat, fixed to the bottom-right corner.
   const host = document.createElement('div');
+  // Bottom-right, clear of phone notches, above everything else on the page.
   host.style.cssText = 'position:fixed;right:max(12px, env(safe-area-inset-right));bottom:max(12px, env(safe-area-inset-bottom));z-index:2147483000;';
+  // Add it to the page.
   document.body.appendChild(host);
   const root = host.attachShadow({ mode: 'open' }); // keeps our styles separate from the client's site
 
+  // The chat's look and layout: styles, the chat panel (header, messages, input) and the round button.
   root.innerHTML = `
     <style>
       :host { all: initial; }
@@ -79,84 +96,144 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </button>`;
 
+  // Shortcut: find an element inside the chat.
   const $ = (sel) => root.querySelector(sel);
+  // The chat panel.
   const panel = $('.panel');
+  // The message list.
   const msgs = $('.msgs');
+  // The message form.
   const form = $('form');
+  // The text box.
   const input = $('input');
+  // The Send button.
   const sendBtn = $('form button');
+  // The business profile, once loaded.
   let profile = null;
+  // Has the greeting been shown yet?
   let greeted = false;
 
   // Render text safely, turning http(s) links into clickable links.
+  // Add a message bubble ("me" = visitor, "bot" = assistant).
   function addMessage(text, who) {
+    // A new bubble.
     const el = document.createElement('div');
+    // Style it as visitor or assistant.
     el.className = `msg ${who}`;
+    // Split the text around web links.
     const parts = String(text).split(/(https?:\/\/[^\s)]+)/g);
+    // For each piece:
     for (const part of parts) {
+      // a link:
       if (/^https?:\/\//.test(part)) {
+        // make a real link,
         const a = document.createElement('a');
+        // to that address,
         a.href = part;
+        // opening in a new tab,
         a.target = '_blank';
+        // safely (the new tab can't control this page),
         a.rel = 'noopener noreferrer';
+        // showing the address without trailing punctuation.
         a.textContent = part.replace(/[.,!?]+$/, '');
+        // Add it.
         el.appendChild(a);
+      // Plain text:
       } else {
+        // add it as text (never as HTML, so nothing harmful can run).
         el.appendChild(document.createTextNode(part));
       }
     }
+    // Add the bubble to the list,
     msgs.appendChild(el);
+    // scroll to the bottom,
     msgs.scrollTop = msgs.scrollHeight;
+    // and hand it back (so "typing…" can be removed later).
     return el;
   }
 
+  // Load the business profile:
   fetch(`${server}/api/public/business/${encodeURIComponent(businessId)}`)
+    // stop if the server says no,
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    // then:
     .then((p) => {
+      // remember it,
       profile = p;
+      // use the brand colour,
       host.style.setProperty('--brand', p.brandColor || '#2563eb');
+      // show the business name in the header.
       $('.name').textContent = p.name;
     })
+    // Failed: keep the default blue.
     .catch(() => host.style.setProperty('--brand', '#2563eb'));
+  // Default blue until the profile arrives.
   host.style.setProperty('--brand', '#2563eb');
 
+  // Open the chat.
   function open() {
+    // Show the panel.
     panel.classList.add('open');
+    // First time:
     if (!greeted) {
+      // remember the greeting was shown,
       greeted = true;
+      // show the business greeting.
       addMessage(profile?.greeting || 'Hi! 👋 How can I help you today?', 'bot');
     }
+    // Put the cursor in the text box.
     input.focus();
   }
 
+  // The round button opens or closes the chat.
   $('.bubble').addEventListener('click', () => (panel.classList.contains('open') ? panel.classList.remove('open') : open()));
+  // The × closes it.
   $('.close').addEventListener('click', () => panel.classList.remove('open'));
   // The website can open the chat from its own buttons ("Ask a question"):
   //   window.dispatchEvent(new Event('marketing-agent:open'))
+  // Listen for that event.
   window.addEventListener('marketing-agent:open', open);
 
+  // The visitor pressed Send:
   form.addEventListener('submit', async (e) => {
+    // stop the page reloading.
     e.preventDefault();
+    // The typed text.
     const text = input.value.trim();
+    // Empty: do nothing.
     if (!text) return;
+    // Clear the box.
     input.value = '';
+    // Show their message.
     addMessage(text, 'me');
+    // Stop double-sending.
     sendBtn.disabled = true;
+    // Show "typing…" while waiting.
     const typing = addMessage('typing…', 'bot typing');
     try {
+      // Send the message to our server.
       const res = await fetch(`${server}/api/public/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessId, sessionId, message: text }),
       });
+      // Read the answer.
       const data = await res.json();
+      // Remove "typing…".
       typing.remove();
+      // Show the reply.
       addMessage(data.reply || 'Sorry, something went wrong. Please try again.', 'bot');
+    // Network failure:
     } catch {
+      // remove "typing…",
       typing.remove();
+      // and say so.
       addMessage("Sorry, I couldn't connect. Please try again in a moment.", 'bot');
+    // Either way:
     } finally {
+      // allow sending again,
       sendBtn.disabled = false;
+      // put the cursor back.
       input.focus();
     }
   });
