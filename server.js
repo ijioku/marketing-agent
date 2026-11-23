@@ -50,7 +50,8 @@ import { DEMO_ID, isDemoBusiness, resetDemo, ensureFreshDemo, demoActivity } fro
 // The port the server listens on (Render sets PORT; locally it is 3000).
 const PORT = Number(process.env.PORT) || 3000;
 // The main admin password from the settings ("changeme" only if none is set).
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
+// The main admin password comes only from the environment (.env locally, Render's settings live). No fallback is written in the code.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 // The main admin signs in with this username (or an empty username) + ADMIN_PASSWORD.
 const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim().toLowerCase();
 // Optional: the main admin's own email, so they can also sign in with it (password or Google).
@@ -167,6 +168,60 @@ app.post('/api/public/chat', async (req, res) => {
   res.json({ reply: result.reply });
 });
 
+// Stops one visitor (or a bot) from flooding a business with fake booking requests.
+// At most 5 booking requests per visitor IP every 15 minutes.
+const bookingPerIp = rateLimiter({ windowMs: 15 * 60_000, max: 5 });
+
+// A visitor sent the booking form on a business's sample page (/demo/<id>#booking).
+// It becomes an inquiry in the owner's dashboard, just like a chat that left contact details.
+app.post('/api/public/booking', (req, res) => {
+  // Count this request against the visitor's IP limit.
+  const limit = bookingPerIp(req.ip);
+  // Too many: ask them to wait.
+  if (!limit.allowed) {
+    // Tell the browser how many seconds to wait...
+    res.set('Retry-After', String(limit.retryAfterSec));
+    // ...and say so politely.
+    return res.status(429).json({ error: 'Too many requests. Please wait a few minutes and try again.' });
+  }
+  // Pull out only the fields we expect (never save the whole body).
+  const { businessId, name, phone, when, guests, service, note, website } = req.body || {};
+  // Hidden "website" field: real people leave it empty, spam bots fill it in. Pretend it worked.
+  if (website) return res.json({ ok: true });
+  // The business id must be valid and exist.
+  if (!isValidId(businessId)) return res.status(400).json({ error: 'Bad business id' });
+  // Look the business up.
+  const biz = getBusiness(businessId);
+  // Unknown business: 404.
+  if (!biz) return res.status(404).json({ error: 'Business not found' });
+  // Turn any value into trimmed text no longer than max characters.
+  const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  // The visitor's name (required, 2-80 characters).
+  const cleanName = text(name, 80);
+  if (cleanName.length < 2) return res.status(400).json({ error: 'Please enter your name.' });
+  // The phone number (required): digits, spaces, +, -, brackets, with 7 to 15 digits.
+  const cleanPhone = text(phone, 30);
+  const digits = cleanPhone.replace(/\D/g, '');
+  if (!/^[\d\s+()-]+$/.test(cleanPhone) || digits.length < 7 || digits.length > 15) return res.status(400).json({ error: 'Please enter a valid phone number.' });
+  // The date (optional): must look like 2026-12-24 and not be in the past.
+  const cleanWhen = text(when, 10);
+  if (cleanWhen && (!/^\d{4}-\d{2}-\d{2}$/.test(cleanWhen) || cleanWhen < new Date().toISOString().slice(0, 10))) return res.status(400).json({ error: 'Please choose a date from today onwards.' });
+  // Number of people (optional): a whole number from 1 to 500.
+  const people = guests === undefined || guests === '' ? 0 : Number(guests);
+  if (people && (!Number.isInteger(people) || people < 1 || people > 500)) return res.status(400).json({ error: 'Please enter how many people (1 to 500).' });
+  // The chosen service and the note (optional, kept short).
+  const cleanService = text(service, 100);
+  const cleanNote = text(note, 400);
+  // One line describing what they want, for the owner's inquiry list.
+  const interest = [cleanService || 'Booking request', cleanWhen && `on ${cleanWhen}`, people && `for ${people}`, cleanNote && `(${cleanNote})`].filter(Boolean).join(' ');
+  // Save it as a new inquiry with its own random id (each form send is separate).
+  const { lead, created } = upsertLead(businessId, `booking-${crypto.randomUUID()}`, { name: cleanName, phone: cleanPhone, interest }, 'booking');
+  // Alert the owner about the new inquiry.
+  if (created) notifyOwner(biz, lead);
+  // Done.
+  res.json({ ok: true });
+});
+
 // ---------- WhatsApp & Instagram auto-replies ----------
 // Meta calls this webhook for every new message. See lib/social.js and README.
 
@@ -261,7 +316,7 @@ async function handleSocialMessage(msg) {
 // Tell the owner about a new inquiry.
 function notifyOwner(biz, lead) {
   // Friendly names for where an inquiry came from.
-  const SOURCES = { referral: 'referral', whatsapp: 'WhatsApp', instagram: 'Instagram', chat: 'website chat' };
+  const SOURCES = { referral: 'referral', whatsapp: 'WhatsApp', instagram: 'Instagram', chat: 'website chat', booking: 'website booking form' };
   // Always write a line to the server log.
   console.log(`[inquiry] ${biz.name}: new ${SOURCES[lead.source] || 'website chat'} inquiry`);
   if (!biz.email || isDemoBusiness(biz.id)) return; // the sample business never emails anyone
@@ -270,6 +325,7 @@ function notifyOwner(biz, lead) {
     referral: `They were invited by your customer ${lead.referredByName}.`,
     whatsapp: 'They messaged you on WhatsApp and the assistant replied.',
     instagram: 'They messaged you on Instagram and the assistant replied.',
+    booking: 'They sent the booking form on your website.',
   // Website chat is the default when the source isn't one of the three above.
   }[lead.source] || 'They chatted with your website assistant.';
   // The lines of the alert email.
@@ -312,7 +368,7 @@ const metaTags = ({ title, description, url, image = `${APP_URL}/og.png` }) =>
 const pageHead = (title, meta = {}) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(title)}</title>${metaTags({ title, ...meta })}<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap">
-<script>try{document.documentElement.dataset.theme=localStorage.getItem('ma-theme')||'system'}catch(e){document.documentElement.dataset.theme='system'}</script>
+<script src="/theme-init.js"></script>
 <style>
 :root{color-scheme:light;--bg:#fff;--card:#fff;--text:#1b1c1f;--muted:#5e6470;--line:#e6e8ec;--dot:rgba(27,28,31,.16)}
 :root[data-theme=dark]{${DARK_TOKENS}}
@@ -320,9 +376,11 @@ const pageHead = (title, meta = {}) => `<!doctype html><html lang="en"><head><me
 *{box-sizing:border-box}body{margin:0;font-family:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:16px;line-height:1.5}
 #field{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
 h1,h2{letter-spacing:-.03em}`;
-// The animated dot background: a canvas plus the script that draws on it, in the given colours.
+// The animated dot background: a canvas plus the scripts that draw on it, in the given colours.
+// The colours travel in a data-colors attribute (escaped), and /motion-start.js reads them,
+// so no inline script is needed and the Content-Security-Policy can block inline code.
 const motionBackground = (colors) =>
-  `<canvas id="field" aria-hidden="true"></canvas><script src="/motion.js"></script><script>window.MotionField&&MotionField.start(document.getElementById('field'),{density:5200,colors:${JSON.stringify(colors)}})</script>`;
+  `<canvas id="field" aria-hidden="true" data-colors="${escapeHtml(JSON.stringify(colors))}"></canvas><script src="/motion.js"></script><script src="/motion-start.js"></script>`;
 
 // The referral invite page: the business's colour, "X invited you to ...", and whatever body is passed in.
 function invitePage(biz, referrer, { body, title, description }) {
@@ -499,7 +557,7 @@ article a{color:inherit;text-decoration-thickness:1px;text-underline-offset:3px}
 <div class="sw" role="group" aria-label="Theme"><button data-t="system">System</button><button data-t="dark">Dark</button><button data-t="light">Light</button></div></div>
 <article>${body}</article>
 <p class="links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/admin">Sign in</a></p></div>
-<script>(function(){var r=document.documentElement,b=document.querySelectorAll('.sw button');function s(t){r.dataset.theme=t;try{localStorage.setItem('ma-theme',t)}catch(e){}b.forEach(function(x){x.setAttribute('aria-pressed',String(x.dataset.t===t))})}b.forEach(function(x){x.onclick=function(){s(x.dataset.t)}});s(r.dataset.theme||'system')})()</script>
+<script src="/theme-switch.js"></script>
 ${motionBackground(['#6d5efc', '#12b5a5', '#f4b13e', '#ff6b3d'])}</body></html>`;
 
 // The privacy policy page.
@@ -584,7 +642,8 @@ app.post('/api/admin/login', (req, res) => {
   // Empty username, "admin" or the admin's email: check against the main admin password.
   if (!username || username === ADMIN_USERNAME || (ADMIN_EMAIL && username === ADMIN_EMAIL)) {
     // safeEqual compares in constant time, so timing can't reveal the password.
-    if (safeEqual(password, ADMIN_PASSWORD)) user = { id: 'admin', role: 'admin', name: 'Admin' };
+    // (An empty ADMIN_PASSWORD never matches, so a missing setting can't let anyone in.)
+    if (ADMIN_PASSWORD && safeEqual(password, ADMIN_PASSWORD)) user = { id: 'admin', role: 'admin', name: 'Admin' };
   // Anything else is a business owner's email.
   } else {
     // Check the owner's email and password (scrypt hash).

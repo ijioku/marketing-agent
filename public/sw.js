@@ -3,9 +3,9 @@
 // NEVER cached: they always come fresh from the server, so nothing private is
 // left on the phone and you never see stale numbers.
 // The cache's name (change the number to throw away old cached files).
-const CACHE = 'ma-shell-v2';
-// The files kept for offline use.
-const SHELL = ['/admin', '/icon.svg', '/manifest.webmanifest'];
+const CACHE = 'ma-shell-v3';
+// The files kept for offline use (the dashboard's scripts now live in their own files, so cache them too).
+const SHELL = ['/admin', '/admin.js', '/theme-init.js', '/motion.js', '/icon.svg', '/manifest.webmanifest'];
 
 // When the app is installed:
 self.addEventListener('install', (e) => {
