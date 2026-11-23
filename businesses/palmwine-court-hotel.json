@@ -1,0 +1,37 @@
+{
+  "id": "palmwine-court-hotel",
+  "publicSample": true,
+  "name": "Palmwine Court Hotel",
+  "type": "Boutique hotel (14 rooms)",
+  "tagline": "Fourteen rooms in Ikoyi. Breakfast comes with every one.",
+  "brandColor": "#a16207",
+  "greeting": "Welcome to Palmwine Court! 🌴 Ask me about our rooms, prices, airport pickup or how to book.",
+  "tone": "warm, polished and welcoming, like a great front-desk manager. Light Nigerian warmth",
+  "phone": "+234 800 000 0001 (WhatsApp)",
+  "email": "",
+  "address": "Ikoyi, Lagos. The exact address and a map pin are sent on WhatsApp.",
+  "hours": "Check-in from 2pm. Check-out by 12 noon. Bookings by WhatsApp any time.",
+  "bookingLink": "https://wa.me/2348000000001?text=Hello%20Palmwine%20Court%20Hotel%2C%20I%27d%20like%20to%20book%20a%20room.",
+  "reviewLink": "",
+  "services": [
+    { "name": "Standard room (breakfast included)", "price": "₦65,000 a night", "duration": "" },
+    { "name": "Deluxe room (breakfast included)", "price": "₦95,000 a night", "duration": "" },
+    { "name": "Executive suite (breakfast included)", "price": "₦160,000 a night", "duration": "" },
+    { "name": "Airport pickup", "price": "₦25,000", "duration": "" }
+  ],
+  "faqs": [
+    { "q": "What time can I check in and out?", "a": "Check-in is from 2pm. Check-out is by 12 noon." },
+    { "q": "Is breakfast included?", "a": "Yes. Breakfast is included in the price of every room." },
+    { "q": "Can you pick me up from the airport?", "a": "Yes, for ₦25,000. Tick airport pickup in the booking form on the website or mention it on WhatsApp, with your flight time." },
+    { "q": "Where exactly is the hotel?", "a": "In Ikoyi, Lagos. Message us on WhatsApp and we'll send the exact address and a map pin." },
+    { "q": "How do I book?", "a": "Use the booking form on the website (it opens WhatsApp with your request written out), or message +234 800 000 0001 on WhatsApp with your dates and the room you want. The hotel replies to confirm the room and the total." },
+    { "q": "What facilities do you have?", "a": "An outdoor pool for guests and a rooftop bar above Ikoyi." }
+  ],
+  "offers": [],
+  "policies": [
+    "Check-in from 2pm, check-out by 12 noon",
+    "Bookings are confirmed by the hotel on WhatsApp"
+  ],
+  "goal": "Answer guests' questions and get room booking requests sent on WhatsApp",
+  "referralOffer": ""
+}

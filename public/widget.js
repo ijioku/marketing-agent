@@ -38,7 +38,9 @@
   // A box that holds the chat, fixed to the bottom-right corner.
   const host = document.createElement('div');
   // Bottom-right, clear of phone notches, above everything else on the page.
-  host.style.cssText = 'position:fixed;right:max(12px, env(safe-area-inset-right));bottom:max(12px, env(safe-area-inset-bottom));z-index:2147483000;';
+  // A website can lift the chat higher (for example above its own floating button or a bottom bar)
+  // by setting the CSS variable --ma-offset-bottom, such as "--ma-offset-bottom: 72px".
+  host.style.cssText = 'position:fixed;right:max(12px, env(safe-area-inset-right));bottom:calc(max(12px, env(safe-area-inset-bottom)) + var(--ma-offset-bottom, 0px));transition:bottom .3s ease;z-index:2147483000;';
   // Add it to the page.
   document.body.appendChild(host);
   const root = host.attachShadow({ mode: 'open' }); // keeps our styles separate from the client's site
@@ -47,11 +49,12 @@
   root.innerHTML = `
     <style>
       :host { all: initial; }
+      .panel, form, input { color-scheme: light; }
       * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
       .bubble { width: 60px; height: 60px; border-radius: 50%; border: 0; cursor: pointer; color: #fff;
         background: var(--brand); box-shadow: 0 8px 24px rgba(0,0,0,.3), 0 0 0 2px rgba(255,255,255,.9); display: grid; place-items: center; margin-left: auto; }
       .bubble svg { width: 28px; height: 28px; }
-      .panel { display: none; flex-direction: column; width: min(370px, calc(100vw - 40px)); height: min(540px, calc(100vh - 110px));
+      .panel { display: none; flex-direction: column; width: min(370px, calc(100vw - 40px)); height: min(540px, calc(100vh - 110px - var(--ma-offset-bottom, 0px)));
         background: #fff; color: #111; border-radius: 16px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,.28); margin-bottom: 12px; }
       .panel.open { display: flex; }
       .head { background: var(--brand); color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
@@ -67,13 +70,13 @@
       .bot a { color: var(--brand); font-weight: 600; }
       .typing { color: #6b7280; font-style: italic; }
       form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #e5e7eb; background: #fff; }
-      input { flex: 1; border: 1px solid #d1d5db; border-radius: 999px; padding: 10px 14px; font-size: 14px; outline: none; min-width: 0; }
+      input { flex: 1; background: #fff; color: #111; border: 1px solid #d1d5db; border-radius: 999px; padding: 10px 14px; font-size: 14px; outline: none; min-width: 0; }
       input:focus { border-color: var(--brand); }
       form button { border: 0; border-radius: 999px; padding: 0 16px; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer; }
       form button:disabled { opacity: .5; cursor: default; }
       .foot { font-size: 11px; color: #9ca3af; text-align: center; padding: 0 0 8px; background: #fff; }
       @media (max-width: 480px) {
-        .panel { width: calc(100vw - 24px); height: calc(100dvh - 96px); border-radius: 14px; }
+        .panel { width: calc(100vw - 24px); height: calc(100dvh - 96px - var(--ma-offset-bottom, 0px)); border-radius: 14px; }
         input { font-size: 16px; } /* prevents iPhone auto-zoom on focus */
         .msg { max-width: 88%; font-size: 15px; }
         .bubble { width: 56px; height: 56px; }

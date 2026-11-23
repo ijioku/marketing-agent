@@ -1,0 +1,37 @@
+{
+  "id": "mama-ks-kitchen",
+  "publicSample": true,
+  "name": "Mama K's Kitchen",
+  "type": "Nigerian restaurant with delivery",
+  "tagline": "Nigerian home cooking in Surulere. Eat with us, or order on WhatsApp for delivery in Surulere or Yaba.",
+  "brandColor": "#0a7c96",
+  "greeting": "Hello, welcome to Mama K's Kitchen! 🍲 Ask me about the menu, prices, delivery or opening hours.",
+  "tone": "friendly, homely and quick, like a warm Lagos restaurant owner. Light Nigerian warmth",
+  "phone": "+234 800 000 0002 (calls and WhatsApp)",
+  "email": "",
+  "address": "Surulere, Lagos",
+  "hours": "Monday to Saturday, 9am to 9pm. Closed on Sunday.",
+  "bookingLink": "https://wa.me/2348000000002?text=Hello%20Mama%20K%27s%20Kitchen%2C%20I%27d%20like%20to%20order%20food.",
+  "reviewLink": "",
+  "services": [
+    { "name": "Jollof rice", "price": "₦3,500", "duration": "" },
+    { "name": "Ofada rice & ayamase", "price": "₦4,500", "duration": "" },
+    { "name": "Pounded yam & egusi", "price": "₦4,000", "duration": "" },
+    { "name": "Goat pepper soup", "price": "₦3,000", "duration": "" },
+    { "name": "Chapman (cold drink)", "price": "₦1,500", "duration": "" }
+  ],
+  "faqs": [
+    { "q": "How do I order?", "a": "Pick your dishes in the menu on the website and tap \"Send order on WhatsApp\", or message +234 800 000 0002 and tell us what you'd like. Nothing is paid on the website." },
+    { "q": "Where do you deliver?", "a": "Anywhere in Surulere and Yaba. If you're somewhere else, you can pick up from the kitchen." },
+    { "q": "How much is delivery?", "a": "It depends on your street. Send your address on WhatsApp and we'll tell you the fee before you pay." },
+    { "q": "Are you open on Sunday?", "a": "No. We're open Monday to Saturday, 9am to 9pm, and closed on Sunday." },
+    { "q": "Can I eat in?", "a": "Yes, you can eat with us at the kitchen in Surulere, or order for delivery or pick-up." }
+  ],
+  "offers": [],
+  "policies": [
+    "Delivery only in Surulere and Yaba; pick-up for everywhere else",
+    "Delivery fee is confirmed on WhatsApp before you pay"
+  ],
+  "goal": "Answer questions about the menu and get food orders sent on WhatsApp",
+  "referralOffer": ""
+}
