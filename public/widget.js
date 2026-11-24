@@ -40,15 +40,24 @@
   // Bottom-right, clear of phone notches, above everything else on the page.
   // A website can lift the chat higher (for example above its own floating button or a bottom bar)
   // by setting the CSS variable --ma-offset-bottom, such as "--ma-offset-bottom: 72px".
-  host.style.cssText = 'position:fixed;right:max(12px, env(safe-area-inset-right));bottom:calc(max(12px, env(safe-area-inset-bottom)) + var(--ma-offset-bottom, 0px));transition:bottom .3s ease;z-index:2147483000;';
+  // A website can put the chat in the bottom-left corner instead with data-position="left"
+  // (useful when the site already has its own button, such as WhatsApp, on the right).
+  const onLeft = script.dataset.position === 'left';
+  // Which side of the screen the chat sits on, kept clear of phone notches.
+  const side = onLeft ? 'left:max(12px, env(safe-area-inset-left));' : 'right:max(12px, env(safe-area-inset-right));';
+  host.style.cssText = 'position:fixed;' + side + 'bottom:calc(max(12px, env(safe-area-inset-bottom)) + var(--ma-offset-bottom, 0px));transition:bottom .3s ease;z-index:2147483000;';
   // Add it to the page.
   document.body.appendChild(host);
+  // Mark the side so the chat's own styles can line the button up correctly.
+  if (onLeft) host.setAttribute('data-side', 'left');
   const root = host.attachShadow({ mode: 'open' }); // keeps our styles separate from the client's site
 
   // The chat's look and layout: styles, the chat panel (header, messages, input) and the round button.
   root.innerHTML = `
     <style>
       :host { all: initial; }
+      /* On the left side the round button lines up with the left edge instead of the right */
+      :host([data-side="left"]) .bubble { margin-left: 0; margin-right: auto; }
       .panel, form, input { color-scheme: light; }
       * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
       .bubble { width: 60px; height: 60px; border-radius: 50%; border: 0; cursor: pointer; color: #fff;
