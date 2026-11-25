@@ -9,45 +9,25 @@
   "tone": "calm, polished and premium, like a luxury boutique assistant. Warm and respectful, proud of kulture, never pushy or slangy. Short replies.",
   "phone": "+234 903 148 3798 (WhatsApp)",
   "email": "",
-  "address": "Nigeria",
+  "address": "Umuahia North, Abia State, Nigeria",
   "hours": "Orders and questions are handled on WhatsApp: wa.me/2349031483798",
   "bookingLink": "https://kobainkulture.pages.dev/custom.html",
   "reviewLink": "",
   "services": [
     {
-      "name": "Hoodies (The Royal Crest Hoodie, The Crowned Hoodie)",
+      "name": "Royal Crest collection: hoodies, racer jackets, tees, cargo pants and tracksuits in black, brown and cream with gold",
       "price": "Price on request, confirmed on WhatsApp"
     },
     {
-      "name": "Racer jackets (The Heritage Racer Jacket, The Royal Motorsport Jacket)",
+      "name": "Motorsport collection: racer jackets, tees, cargo and tracksuits inspired by racing kulture",
       "price": "Price on request, confirmed on WhatsApp"
     },
     {
-      "name": "Tracksuits (The Royal Movement Tracksuit, The Ascent Tracksuit)",
+      "name": "Dark Masked collection: hoodies, racer jackets, tees, cargo and tracksuits",
       "price": "Price on request, confirmed on WhatsApp"
     },
     {
-      "name": "Denim (The Legacy Denim Set, The Reclamation Denim)",
-      "price": "Price on request, confirmed on WhatsApp"
-    },
-    {
-      "name": "Coats (The Royal Coat, The Royal Guard Coat)",
-      "price": "Price on request, confirmed on WhatsApp"
-    },
-    {
-      "name": "Tees (The Kultural Emblem Tee, The Artifact Tee)",
-      "price": "Price on request, confirmed on WhatsApp"
-    },
-    {
-      "name": "Cargo pants (The Nomad Cargo Pants)",
-      "price": "Price on request, confirmed on WhatsApp"
-    },
-    {
-      "name": "Footwear (The Dynasty Sneakers)",
-      "price": "Price on request, confirmed on WhatsApp"
-    },
-    {
-      "name": "Accessories (The Crown Collection jewellery, The Vision Sunglasses, The Journey Bags, The Essentials caps, beanies and belts)",
+      "name": "Signature pieces: The Royal Crest Hoodie, The Heritage Racer Jacket, The Royal Coat, The Legacy Denim Set, The Dynasty Sneakers, The Crown Collection jewellery, The Journey Bags and more (38 pieces in the shop)",
       "price": "Price on request, confirmed on WhatsApp"
     },
     {
@@ -56,6 +36,10 @@
     },
     {
       "name": "Custom traditional wear for other kultures, made to order",
+      "price": "Quoted on WhatsApp after the design is agreed"
+    },
+    {
+      "name": "Women's pieces under the queen's emblem, and children's pieces as custom orders",
       "price": "Quoted on WhatsApp after the design is agreed"
     }
   ],
@@ -66,7 +50,7 @@
     },
     {
       "q": "Why are prices not shown?",
-      "a": "Many pieces are made to order and the price depends on fabric, embroidery and size. The exact price is confirmed on WhatsApp before you pay anything."
+      "a": "Everything is custom: the price depends on the design, fabric, embroidery and size. The team confirms the exact price on WhatsApp before you pay anything. Never guess or quote a price."
     },
     {
       "q": "Can you make clothing for my kulture?",
@@ -82,7 +66,7 @@
     },
     {
       "q": "What sizes are available?",
-      "a": "Standard sizes S to XXL, or made to measure. Send your measurements in the WhatsApp chat and the team will guide you."
+      "a": "Standard sizes S to XXL, or made to measure. The how to measure guide at kobainkulture.pages.dev/measure.html shows the 10 measurements to take (chest, shoulders, sleeve, top length, neck, waist, hips, trouser length, inseam, head) and has a form that sends them straight to WhatsApp."
     },
     {
       "q": "What are the collections?",
@@ -91,6 +75,22 @@
     {
       "q": "What patterns do you use?",
       "a": "Patterns inspired by Akwete cloth from Abia State, Adinkra symbols and Kente cloth from Ghana, and Igbo motifs, redrawn in the Kobain Kulture style."
+    },
+    {
+      "q": "Are you on Instagram or TikTok?",
+      "a": "Yes. Follow @kobainkulture on Instagram (instagram.com/kobainkulture) and TikTok (tiktok.com/@kobainkulture) for new pieces."
+    },
+    {
+      "q": "Who founded Kobain Kulture?",
+      "a": "Amarachukwu Chikwekwem, known as Kobain, founded the brand in Umuahia North, Abia State, to preserve heritage and kulture. The safari photos of him with zebras, giraffes and lions show real pieces he designed and wears."
+    },
+    {
+      "q": "Where can I see more photos and films?",
+      "a": "The Lookbook (kobainkulture.pages.dev/lookbook.html) shows styled looks, and The Archive (kobainkulture.pages.dev/archive.html) holds the founder's own photos, every collection design board and short films."
+    },
+    {
+      "q": "How long does a custom order take?",
+      "a": "It depends on the piece and the design. The team gives you a timeline on WhatsApp when the design and price are agreed."
     }
   ],
   "offers": [],
